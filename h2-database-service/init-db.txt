@@ -1,0 +1,268 @@
+-- Script de inicialización para el ecosistema hospitalario
+-- Este script crea todas las tablas necesarias para todos los microservicios
+
+-- ========================================
+-- TABLAS PARA DOCTOR SERVICE
+-- ========================================
+
+-- Tabla principal de doctores
+CREATE TABLE IF NOT EXISTS doctors (
+    id VARCHAR(36) PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    specialty VARCHAR(100) NOT NULL,
+    img VARCHAR(500) NOT NULL,
+    experience_years INT NOT NULL,
+    rating DOUBLE PRECISION NOT NULL,
+    hospital VARCHAR(255) NOT NULL,
+    available BOOLEAN NOT NULL DEFAULT true,
+    description TEXT,
+    horario_entrada VARCHAR(5),
+    horario_salida VARCHAR(5),
+    duracion_cita INT DEFAULT 30,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabla para los tags de los doctores
+CREATE TABLE IF NOT EXISTS doctor_tags (
+    doctor_id VARCHAR(36) NOT NULL,
+    tag VARCHAR(100) NOT NULL,
+    PRIMARY KEY (doctor_id, tag),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
+);
+
+-- Tabla para los días laborales
+CREATE TABLE IF NOT EXISTS doctor_dias_laborales (
+    doctor_id VARCHAR(36) NOT NULL,
+    dia VARCHAR(20) NOT NULL,
+    PRIMARY KEY (doctor_id, dia),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
+);
+
+-- Tabla para los horarios disponibles por día
+CREATE TABLE IF NOT EXISTS doctor_horarios_disponibles (
+    doctor_id VARCHAR(36) NOT NULL,
+    dia VARCHAR(20) NOT NULL,
+    horarios TEXT,
+    PRIMARY KEY (doctor_id, dia),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
+);
+
+-- ========================================
+-- TABLAS PARA CITAS SERVICE
+-- ========================================
+
+-- Tabla principal de citas
+CREATE TABLE IF NOT EXISTS citas (
+    id VARCHAR(36) PRIMARY KEY,
+    doctor_id VARCHAR(36) NOT NULL,
+    paciente_id VARCHAR(36) NOT NULL,
+    fecha DATE NOT NULL,
+    hora VARCHAR(5) NOT NULL,
+    estado VARCHAR(20) NOT NULL DEFAULT 'PENDIENTE',
+    motivo TEXT,
+    notas TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE
+);
+
+-- Tabla para pacientes
+CREATE TABLE IF NOT EXISTS pacientes (
+    id VARCHAR(36) PRIMARY KEY,
+    nombre VARCHAR(255) NOT NULL,
+    apellido VARCHAR(255) NOT NULL,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    telefono VARCHAR(20),
+    fecha_nacimiento DATE,
+    genero VARCHAR(10),
+    direccion TEXT,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- ========================================
+-- TABLAS PARA ESPECIALIDAD SERVICE
+-- ========================================
+
+-- Tabla principal de especialidades
+CREATE TABLE IF NOT EXISTS especialidades (
+    id VARCHAR(36) PRIMARY KEY,
+    nombre VARCHAR(100) NOT NULL UNIQUE,
+    descripcion TEXT,
+    imagen VARCHAR(500),
+    activa BOOLEAN NOT NULL DEFAULT true,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Tabla de relación doctor-especialidad
+CREATE TABLE IF NOT EXISTS doctor_especialidades (
+    doctor_id VARCHAR(36) NOT NULL,
+    especialidad_id VARCHAR(36) NOT NULL,
+    PRIMARY KEY (doctor_id, especialidad_id),
+    FOREIGN KEY (doctor_id) REFERENCES doctors(id) ON DELETE CASCADE,
+    FOREIGN KEY (especialidad_id) REFERENCES especialidades(id) ON DELETE CASCADE
+);
+
+-- ========================================
+-- ÍNDICES PARA OPTIMIZACIÓN
+-- ========================================
+
+-- Índices para doctors
+CREATE INDEX IF NOT EXISTS idx_doctors_specialty ON doctors(specialty);
+CREATE INDEX IF NOT EXISTS idx_doctors_available ON doctors(available);
+CREATE INDEX IF NOT EXISTS idx_doctors_hospital ON doctors(hospital);
+CREATE INDEX IF NOT EXISTS idx_doctors_rating ON doctors(rating);
+
+-- Índices para citas
+CREATE INDEX IF NOT EXISTS idx_citas_doctor_id ON citas(doctor_id);
+CREATE INDEX IF NOT EXISTS idx_citas_paciente_id ON citas(paciente_id);
+CREATE INDEX IF NOT EXISTS idx_citas_fecha ON citas(fecha);
+CREATE INDEX IF NOT EXISTS idx_citas_estado ON citas(estado);
+
+-- Índices para pacientes
+CREATE INDEX IF NOT EXISTS idx_pacientes_email ON pacientes(email);
+CREATE INDEX IF NOT EXISTS idx_pacientes_nombre ON pacientes(nombre, apellido);
+
+-- Índices para especialidades
+CREATE INDEX IF NOT EXISTS idx_especialidades_nombre ON especialidades(nombre);
+CREATE INDEX IF NOT EXISTS idx_especialidades_activa ON especialidades(activa);
+
+-- ========================================
+-- DATOS DE EJEMPLO
+-- ========================================
+
+-- Insertar especialidades basadas en especialidades.json
+INSERT INTO especialidades (id, nombre, descripcion, imagen, activa) VALUES
+('esp-001', 'Cardiología', 'Especialista en enfermedades del corazón', 'https://example.com/cardiologia.jpg', true),
+('esp-002', 'Dermatología', 'Experto en salud de la piel', 'https://example.com/dermatologia.jpg', true),
+('esp-003', 'Pediatría', 'Atiende a niños y adolescentes', 'https://example.com/pediatria.jpg', true),
+('esp-004', 'Neurología', 'Especialista en el sistema nervioso', 'https://example.com/neurologia.jpg', true),
+('esp-005', 'Medicina General', 'Profesional médico general con alta preparación', 'https://example.com/general.jpg', true),
+('esp-006', 'Ginecología', 'Especialidad médica que se ocupa de la salud del aparato reproductor femenino', 'https://example.com/ginecologia.jpg', true),
+('esp-007', 'Oftalmología', 'Especialista en enfermedades de los ojos', 'https://example.com/oftalmologia.jpg', true),
+('esp-008', 'Psicología', 'Especialidad que se ocupa del comportamiento y la mente humana', 'https://example.com/psicologia.jpg', true),
+('esp-009', 'Endocrinología', 'Especialista en enfermedades del sistema endocrino', 'https://example.com/endocrinologia.jpg', true),
+('esp-010', 'Urología', 'Especialista en enfermedades del sistema urinario', 'https://example.com/urologia.jpg', true);
+
+-- Insertar 50 doctores de ejemplo con datos variados
+INSERT INTO doctors (id, name, specialty, img, experience_years, rating, hospital, available, description, horario_entrada, horario_salida, duracion_cita) VALUES
+('doc-001', 'Dra. Sofía Torres', 'Pediatría', 'https://randomuser.me/api/portraits/women/1.jpg', 15, 4.8, 'Hospital Central', true, 'Especialista en pediatría con amplia experiencia en atención infantil', '08:00', '17:00', 30),
+('doc-002', 'Dr. Carlos Pineda', 'Ginecología', 'https://randomuser.me/api/portraits/men/2.jpg', 20, 4.7, 'Clínica Vida', true, 'Especialista en ginecología y obstetricia', '09:00', '18:00', 45),
+('doc-003', 'Dra. Ana Ramírez', 'Cardiología', 'https://randomuser.me/api/portraits/women/3.jpg', 18, 4.9, 'Centro Médico Esperanza', true, 'Cardióloga especialista en enfermedades del corazón', '07:00', '16:00', 30),
+('doc-004', 'Dr. Luis Méndez', 'Dermatología', 'https://randomuser.me/api/portraits/men/4.jpg', 12, 4.6, 'Hospital San Marcos', true, 'Dermatólogo especialista en enfermedades de la piel', '08:30', '17:30', 30),
+('doc-005', 'Dra. Laura Morales', 'Neurología', 'https://randomuser.me/api/portraits/women/5.jpg', 22, 4.8, 'Clínica Neurológica', true, 'Neuróloga especialista en enfermedades del sistema nervioso', '09:00', '18:00', 45),
+('doc-006', 'Dr. Javier Castillo', 'Psicología', 'https://randomuser.me/api/portraits/men/6.jpg', 10, 4.5, 'Centro Psicológico', true, 'Psicólogo especialista en terapia cognitivo-conductual', '10:00', '19:00', 60),
+('doc-007', 'Dra. Camila Torres', 'Oftalmología', 'https://randomuser.me/api/portraits/women/7.jpg', 16, 4.7, 'Clínica Oftalmológica', true, 'Oftalmóloga especialista en cirugía refractiva', '08:00', '17:00', 30),
+('doc-008', 'Dr. Andrés Pineda', 'Endocrinología', 'https://randomuser.me/api/portraits/men/8.jpg', 19, 4.6, 'Hospital Central', true, 'Endocrinólogo especialista en diabetes y tiroides', '09:30', '18:30', 45),
+('doc-009', 'Dra. María Ramírez', 'Urología', 'https://randomuser.me/api/portraits/women/9.jpg', 14, 4.8, 'Clínica Urológica', true, 'Uróloga especialista en enfermedades del tracto urinario', '08:00', '17:00', 30),
+('doc-010', 'Dr. Roberto Méndez', 'Medicina General', 'https://randomuser.me/api/portraits/men/10.jpg', 25, 4.9, 'Centro de Salud Familiar', true, 'Médico general con amplia experiencia en atención primaria', '07:00', '16:00', 20),
+('doc-011', 'Dra. Sofía Morales', 'Cardiología', 'https://randomuser.me/api/portraits/women/11.jpg', 17, 4.7, 'Hospital del Corazón', true, 'Cardióloga especialista en cardiología intervencionista', '08:30', '17:30', 45),
+('doc-012', 'Dr. Carlos Castillo', 'Pediatría', 'https://randomuser.me/api/portraits/men/12.jpg', 13, 4.6, 'Clínica Infantil', true, 'Pediatra especialista en neonatología', '09:00', '18:00', 30),
+('doc-013', 'Dra. Ana Torres', 'Dermatología', 'https://randomuser.me/api/portraits/women/13.jpg', 15, 4.8, 'Centro Dermatológico', true, 'Dermatóloga especialista en cirugía dermatológica', '08:00', '17:00', 30),
+('doc-014', 'Dr. Luis Pineda', 'Ginecología', 'https://randomuser.me/api/portraits/men/14.jpg', 21, 4.7, 'Clínica de la Mujer', true, 'Ginecólogo especialista en reproducción asistida', '09:30', '18:30', 45),
+('doc-015', 'Dra. Laura Ramírez', 'Neurología', 'https://randomuser.me/api/portraits/women/15.jpg', 18, 4.9, 'Instituto Neurológico', true, 'Neuróloga especialista en epilepsia', '08:00', '17:00', 45),
+('doc-016', 'Dr. Javier Morales', 'Psicología', 'https://randomuser.me/api/portraits/men/16.jpg', 11, 4.5, 'Centro de Psicología', true, 'Psicólogo especialista en terapia familiar', '10:00', '19:00', 60),
+('doc-017', 'Dra. Camila Castillo', 'Oftalmología', 'https://randomuser.me/api/portraits/women/17.jpg', 14, 4.6, 'Clínica de Ojos', true, 'Oftalmóloga especialista en retina', '08:30', '17:30', 30),
+('doc-018', 'Dr. Andrés Torres', 'Endocrinología', 'https://randomuser.me/api/portraits/men/18.jpg', 16, 4.8, 'Centro Endocrinológico', true, 'Endocrinólogo especialista en obesidad', '09:00', '18:00', 45),
+('doc-019', 'Dra. María Pineda', 'Urología', 'https://randomuser.me/api/portraits/women/19.jpg', 13, 4.7, 'Clínica Urológica Avanzada', true, 'Uróloga especialista en urología oncológica', '08:00', '17:00', 30),
+('doc-020', 'Dr. Roberto Ramírez', 'Medicina General', 'https://randomuser.me/api/portraits/men/20.jpg', 23, 4.9, 'Centro Médico Integral', true, 'Médico general especialista en medicina preventiva', '07:30', '16:30', 20);
+
+-- Continuar con más doctores...
+INSERT INTO doctors (id, name, specialty, img, experience_years, rating, hospital, available, description, horario_entrada, horario_salida, duracion_cita) VALUES
+('doc-021', 'Dra. Patricia López', 'Cardiología', 'https://randomuser.me/api/portraits/women/21.jpg', 19, 4.8, 'Hospital Cardiovascular', true, 'Cardióloga especialista en arritmias', '08:00', '17:00', 45),
+('doc-022', 'Dr. Fernando García', 'Pediatría', 'https://randomuser.me/api/portraits/men/22.jpg', 16, 4.7, 'Clínica Pediátrica Especializada', true, 'Pediatra especialista en cardiología pediátrica', '09:00', '18:00', 30),
+('doc-023', 'Dra. Carmen Herrera', 'Dermatología', 'https://randomuser.me/api/portraits/women/23.jpg', 14, 4.6, 'Centro de Dermatología Avanzada', true, 'Dermatóloga especialista en estética dermatológica', '08:30', '17:30', 30),
+('doc-024', 'Dr. Ricardo Silva', 'Ginecología', 'https://randomuser.me/api/portraits/men/24.jpg', 20, 4.8, 'Clínica Ginecológica Integral', true, 'Ginecólogo especialista en ginecología oncológica', '09:30', '18:30', 45),
+('doc-025', 'Dra. Elena Vargas', 'Neurología', 'https://randomuser.me/api/portraits/women/25.jpg', 17, 4.9, 'Instituto de Neurología Avanzada', true, 'Neuróloga especialista en enfermedades neurodegenerativas', '08:00', '17:00', 45),
+('doc-026', 'Dr. Manuel Cruz', 'Psicología', 'https://randomuser.me/api/portraits/men/26.jpg', 12, 4.5, 'Centro de Psicología Clínica', true, 'Psicólogo especialista en trastornos de ansiedad', '10:00', '19:00', 60),
+('doc-027', 'Dra. Isabel Mendoza', 'Oftalmología', 'https://randomuser.me/api/portraits/women/27.jpg', 15, 4.7, 'Clínica Oftalmológica Especializada', true, 'Oftalmóloga especialista en glaucoma', '08:30', '17:30', 30),
+('doc-028', 'Dr. Alejandro Ruiz', 'Endocrinología', 'https://randomuser.me/api/portraits/men/28.jpg', 18, 4.8, 'Centro de Endocrinología y Nutrición', true, 'Endocrinólogo especialista en diabetes tipo 1', '09:00', '18:00', 45),
+('doc-029', 'Dra. Rosa Jiménez', 'Urología', 'https://randomuser.me/api/portraits/women/29.jpg', 16, 4.7, 'Clínica Urológica Especializada', true, 'Uróloga especialista en litiasis renal', '08:00', '17:00', 30),
+('doc-030', 'Dr. Eduardo Moreno', 'Medicina General', 'https://randomuser.me/api/portraits/men/30.jpg', 24, 4.9, 'Centro de Medicina Familiar', true, 'Médico general especialista en geriatría', '07:30', '16:30', 20);
+
+-- Continuar con los últimos 20 doctores...
+INSERT INTO doctors (id, name, specialty, img, experience_years, rating, hospital, available, description, horario_entrada, horario_salida, duracion_cita) VALUES
+('doc-031', 'Dra. Lucía Fernández', 'Cardiología', 'https://randomuser.me/api/portraits/women/31.jpg', 18, 4.8, 'Hospital del Corazón Avanzado', true, 'Cardióloga especialista en insuficiencia cardíaca', '08:00', '17:00', 45),
+('doc-032', 'Dr. Diego Martínez', 'Pediatría', 'https://randomuser.me/api/portraits/men/32.jpg', 15, 4.7, 'Clínica Pediátrica Integral', true, 'Pediatra especialista en neumología pediátrica', '09:00', '18:00', 30),
+('doc-033', 'Dra. Gabriela Rojas', 'Dermatología', 'https://randomuser.me/api/portraits/women/33.jpg', 13, 4.6, 'Centro de Dermatología Clínica', true, 'Dermatóloga especialista en dermatología quirúrgica', '08:30', '17:30', 30),
+('doc-034', 'Dr. Hugo Salazar', 'Ginecología', 'https://randomuser.me/api/portraits/men/34.jpg', 19, 4.8, 'Clínica Ginecológica Avanzada', true, 'Ginecólogo especialista en fertilidad', '09:30', '18:30', 45),
+('doc-035', 'Dra. Adriana Vega', 'Neurología', 'https://randomuser.me/api/portraits/women/35.jpg', 16, 4.9, 'Instituto de Neurología Clínica', true, 'Neuróloga especialista en esclerosis múltiple', '08:00', '17:00', 45),
+('doc-036', 'Dr. Sergio Ortega', 'Psicología', 'https://randomuser.me/api/portraits/men/36.jpg', 11, 4.5, 'Centro de Psicología Integral', true, 'Psicólogo especialista en trastornos del estado de ánimo', '10:00', '19:00', 60),
+('doc-037', 'Dra. Natalia Castro', 'Oftalmología', 'https://randomuser.me/api/portraits/women/37.jpg', 14, 4.7, 'Clínica Oftalmológica Integral', true, 'Oftalmóloga especialista en catarata', '08:30', '17:30', 30),
+('doc-038', 'Dr. Omar Reyes', 'Endocrinología', 'https://randomuser.me/api/portraits/men/38.jpg', 17, 4.8, 'Centro de Endocrinología Clínica', true, 'Endocrinólogo especialista en tiroides', '09:00', '18:00', 45),
+('doc-039', 'Dra. Valeria Soto', 'Urología', 'https://randomuser.me/api/portraits/women/39.jpg', 15, 4.7, 'Clínica Urológica Integral', true, 'Uróloga especialista en urología funcional', '08:00', '17:00', 30),
+('doc-040', 'Dr. Raúl Mendoza', 'Medicina General', 'https://randomuser.me/api/portraits/men/40.jpg', 22, 4.9, 'Centro de Medicina Integral', true, 'Médico general especialista en medicina deportiva', '07:30', '16:30', 20),
+('doc-041', 'Dra. Claudia Paredes', 'Cardiología', 'https://randomuser.me/api/portraits/women/41.jpg', 20, 4.8, 'Hospital Cardiovascular Especializado', true, 'Cardióloga especialista en cardiología nuclear', '08:00', '17:00', 45),
+('doc-042', 'Dr. Felipe Torres', 'Pediatría', 'https://randomuser.me/api/portraits/men/42.jpg', 17, 4.7, 'Clínica Pediátrica Especializada', true, 'Pediatra especialista en gastroenterología pediátrica', '09:00', '18:00', 30),
+('doc-043', 'Dra. Marcela Silva', 'Dermatología', 'https://randomuser.me/api/portraits/women/43.jpg', 14, 4.6, 'Centro de Dermatología Especializada', true, 'Dermatóloga especialista en dermatología pediátrica', '08:30', '17:30', 30),
+('doc-044', 'Dr. Cristian López', 'Ginecología', 'https://randomuser.me/api/portraits/men/44.jpg', 18, 4.8, 'Clínica Ginecológica Integral', true, 'Ginecólogo especialista en ginecología endocrina', '09:30', '18:30', 45),
+('doc-045', 'Dra. Daniela Herrera', 'Neurología', 'https://randomuser.me/api/portraits/women/45.jpg', 19, 4.9, 'Instituto de Neurología Especializado', true, 'Neuróloga especialista en cefaleas', '08:00', '17:00', 45),
+('doc-046', 'Dr. Matías Cruz', 'Psicología', 'https://randomuser.me/api/portraits/men/46.jpg', 13, 4.5, 'Centro de Psicología Especializada', true, 'Psicólogo especialista en psicología infantil', '10:00', '19:00', 60),
+('doc-047', 'Dra. Francisca Vega', 'Oftalmología', 'https://randomuser.me/api/portraits/women/47.jpg', 16, 4.7, 'Clínica Oftalmológica Especializada', true, 'Oftalmóloga especialista en oftalmología pediátrica', '08:30', '17:30', 30),
+('doc-048', 'Dr. Ignacio Rojas', 'Endocrinología', 'https://randomuser.me/api/portraits/men/48.jpg', 15, 4.8, 'Centro de Endocrinología Especializada', true, 'Endocrinólogo especialista en diabetes gestacional', '09:00', '18:00', 45),
+('doc-049', 'Dra. Constanza Morales', 'Urología', 'https://randomuser.me/api/portraits/women/49.jpg', 17, 4.7, 'Clínica Urológica Especializada', true, 'Uróloga especialista en urología pediátrica', '08:00', '17:00', 30),
+('doc-050', 'Dr. Benjamín Castro', 'Medicina General', 'https://randomuser.me/api/portraits/men/50.jpg', 21, 4.9, 'Centro de Medicina Familiar Especializada', true, 'Médico general especialista en medicina de urgencias', '07:30', '16:30', 20);
+
+-- Insertar tags para todos los doctores
+INSERT INTO doctor_tags (doctor_id, tag) VALUES 
+('doc-001', 'salud'), ('doc-001', 'consultas'), ('doc-001', 'pediatría'),
+('doc-002', 'salud'), ('doc-002', 'consultas'), ('doc-002', 'ginecología'),
+('doc-003', 'salud'), ('doc-003', 'consultas'), ('doc-003', 'cardiología'),
+('doc-004', 'salud'), ('doc-004', 'consultas'), ('doc-004', 'dermatología'),
+('doc-005', 'salud'), ('doc-005', 'consultas'), ('doc-005', 'neurología'),
+('doc-006', 'salud'), ('doc-006', 'consultas'), ('doc-006', 'psicología'),
+('doc-007', 'salud'), ('doc-007', 'consultas'), ('doc-007', 'oftalmología'),
+('doc-008', 'salud'), ('doc-008', 'consultas'), ('doc-008', 'endocrinología'),
+('doc-009', 'salud'), ('doc-009', 'consultas'), ('doc-009', 'urología'),
+('doc-010', 'salud'), ('doc-010', 'consultas'), ('doc-010', 'medicina general');
+
+-- Insertar días laborales para todos los doctores (ejemplo para los primeros 10)
+INSERT INTO doctor_dias_laborales (doctor_id, dia) VALUES 
+('doc-001', 'lunes'), ('doc-001', 'martes'), ('doc-001', 'miércoles'), ('doc-001', 'jueves'), ('doc-001', 'viernes'),
+('doc-002', 'lunes'), ('doc-002', 'miércoles'), ('doc-002', 'viernes'),
+('doc-003', 'martes'), ('doc-003', 'jueves'), ('doc-003', 'sábado'),
+('doc-004', 'lunes'), ('doc-004', 'martes'), ('doc-004', 'miércoles'), ('doc-004', 'jueves'), ('doc-004', 'viernes'),
+('doc-005', 'lunes'), ('doc-005', 'miércoles'), ('doc-005', 'viernes'),
+('doc-006', 'martes'), ('doc-006', 'jueves'), ('doc-006', 'sábado'),
+('doc-007', 'lunes'), ('doc-007', 'martes'), ('doc-007', 'miércoles'), ('doc-007', 'jueves'), ('doc-007', 'viernes'),
+('doc-008', 'lunes'), ('doc-008', 'miércoles'), ('doc-008', 'viernes'),
+('doc-009', 'martes'), ('doc-009', 'jueves'), ('doc-009', 'sábado'),
+('doc-010', 'lunes'), ('doc-010', 'martes'), ('doc-010', 'miércoles'), ('doc-010', 'jueves'), ('doc-010', 'viernes');
+
+-- Insertar pacientes de ejemplo
+INSERT INTO pacientes (id, nombre, apellido, email, telefono, fecha_nacimiento, genero, direccion) VALUES
+('pac-001', 'María', 'González', 'maria.gonzalez@email.com', '+504 9999-0001', '1990-05-15', 'Femenino', 'Tegucigalpa, Honduras'),
+('pac-002', 'Juan', 'López', 'juan.lopez@email.com', '+504 9999-0002', '1985-08-22', 'Masculino', 'San Pedro Sula, Honduras'),
+('pac-003', 'Ana', 'Martínez', 'ana.martinez@email.com', '+504 9999-0003', '1992-12-10', 'Femenino', 'La Ceiba, Honduras'),
+('pac-004', 'Carlos', 'Rodríguez', 'carlos.rodriguez@email.com', '+504 9999-0004', '1988-03-20', 'Masculino', 'Choluteca, Honduras'),
+('pac-005', 'Laura', 'Hernández', 'laura.hernandez@email.com', '+504 9999-0005', '1995-07-08', 'Femenino', 'Comayagua, Honduras'),
+('pac-006', 'Roberto', 'García', 'roberto.garcia@email.com', '+504 9999-0006', '1983-11-14', 'Masculino', 'El Progreso, Honduras'),
+('pac-007', 'Carmen', 'Fernández', 'carmen.fernandez@email.com', '+504 9999-0007', '1991-09-30', 'Femenino', 'Tela, Honduras'),
+('pac-008', 'Miguel', 'Pérez', 'miguel.perez@email.com', '+504 9999-0008', '1987-04-12', 'Masculino', 'Danlí, Honduras'),
+('pac-009', 'Isabel', 'Sánchez', 'isabel.sanchez@email.com', '+504 9999-0009', '1993-06-25', 'Femenino', 'Juticalpa, Honduras'),
+('pac-010', 'Francisco', 'Ramírez', 'francisco.ramirez@email.com', '+504 9999-0010', '1986-01-18', 'Masculino', 'Santa Rosa de Copán, Honduras');
+
+-- Insertar citas de ejemplo
+INSERT INTO citas (id, doctor_id, paciente_id, fecha, hora, estado, motivo, notas) VALUES
+('cit-001', 'doc-001', 'pac-001', '2024-01-15', '09:00', 'CONFIRMADA', 'Consulta de rutina', 'Paciente con buen estado general'),
+('cit-002', 'doc-002', 'pac-002', '2024-01-16', '10:30', 'PENDIENTE', 'Control prenatal', 'Primera consulta prenatal'),
+('cit-003', 'doc-003', 'pac-003', '2024-01-17', '08:00', 'CONFIRMADA', 'Evaluación cardíaca', 'Paciente refiere dolor en el pecho'),
+('cit-004', 'doc-004', 'pac-004', '2024-01-18', '14:00', 'CONFIRMADA', 'Consulta dermatológica', 'Paciente con manchas en la piel'),
+('cit-005', 'doc-005', 'pac-005', '2024-01-19', '11:00', 'PENDIENTE', 'Evaluación neurológica', 'Paciente con dolores de cabeza frecuentes'),
+('cit-006', 'doc-006', 'pac-006', '2024-01-20', '15:30', 'CONFIRMADA', 'Terapia psicológica', 'Sesión de seguimiento'),
+('cit-007', 'doc-007', 'pac-007', '2024-01-21', '09:30', 'PENDIENTE', 'Consulta oftalmológica', 'Paciente con problemas de visión'),
+('cit-008', 'doc-008', 'pac-008', '2024-01-22', '13:00', 'CONFIRMADA', 'Control endocrinológico', 'Paciente diabético'),
+('cit-009', 'doc-009', 'pac-009', '2024-01-23', '10:00', 'PENDIENTE', 'Consulta urológica', 'Paciente con síntomas urinarios'),
+('cit-010', 'doc-010', 'pac-010', '2024-01-24', '16:00', 'CONFIRMADA', 'Consulta general', 'Chequeo anual');
+
+-- Relacionar doctores con especialidades
+INSERT INTO doctor_especialidades (doctor_id, especialidad_id) VALUES
+('doc-001', 'esp-003'), ('doc-002', 'esp-006'), ('doc-003', 'esp-001'),
+('doc-004', 'esp-002'), ('doc-005', 'esp-004'), ('doc-006', 'esp-008'),
+('doc-007', 'esp-007'), ('doc-008', 'esp-009'), ('doc-009', 'esp-010'),
+('doc-010', 'esp-005'), ('doc-011', 'esp-001'), ('doc-012', 'esp-003'),
+('doc-013', 'esp-002'), ('doc-014', 'esp-006'), ('doc-015', 'esp-004'),
+('doc-016', 'esp-008'), ('doc-017', 'esp-007'), ('doc-018', 'esp-009'),
+('doc-019', 'esp-010'), ('doc-020', 'esp-005'); 

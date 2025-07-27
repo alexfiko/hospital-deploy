@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  h2-database:
+    build: .
+    container_name: h2-database
+    ports:
+      - "9092:9092"  # Puerto TCP para conexiones JDBC
+      - "8082:8082"  # Puerto para consola web (opcional)
+    environment:
+      - H2_DATA_DIR=/data
+      - H2_PORT=9092
+    volumes:
+      - h2-data:/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - hospital-network
+    restart: unless-stopped
+
+  # Consola web opcional para administración
+  h2-console:
+    image: openjdk:17-jdk-slim
+    container_name: h2-console
+    ports:
+      - "8082:8082"
+    volumes:
+      - ./h2-console.jar:/app/h2.jar
+    working_dir: /app
+    command: ["java", "-cp", "h2.jar", "org.h2.tools.Server", "-web", "-webPort", "8082", "-webAllowOthers"]
+    networks:
+      - hospital-network
+    depends_on:
+      - h2-database
+
+volumes:
+  h2-data:
+    driver: local
+
+networks:
+  hospital-network:
+    driver: bridge 

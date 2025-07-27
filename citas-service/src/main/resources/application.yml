@@ -1,0 +1,38 @@
+server:
+  port: 8082 # o el puerto que uses para citas-service
+
+spring:
+  application:
+    name: citas-service
+  cloud:
+    compatibility-verifier:
+      enabled: false # Opcional para evitar errores por versiones
+  main:
+    allow-bean-definition-overriding: true # Si usás Feign más adelante
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    hostname: localhost
+    prefer-ip-address: false
+    instance-id: ${spring.application.name}:${server.port}
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health, info
+  info:
+    env:
+      enabled: true
+
+info:
+  app:
+    name: Citas Service
+    description: Servicio para gestión de citas médicas
+    version: 1.0.0

@@ -1,0 +1,31 @@
+server:
+  port: 8081
+
+spring:
+  application:
+    name: doctor-service
+  datasource:
+    url: jdbc:h2:tcp://h2-database:9092/hospitaldb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: ${DB_PASSWORD} # Lo ideal es usar una variable
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+  h2:
+    console:
+      enabled: false
+
+  flyway:
+    enabled: false
+  jackson:
+    default-property-inclusion: non-null
+    serialization:
+      write-dates-as-timestamps: false  
+
+info:
+  app:
+    name: Doctor Service (Prod)
+    version: 1.0.0

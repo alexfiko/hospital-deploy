@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  doctor-service:
+    build: .
+    image: doctor-service:latest
+    container_name: doctor-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=dev
+      - SPRING_DATASOURCE_URL=jdbc:h2:file:/data/doctordb
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+    volumes:
+      - doctor-data:/data
+    networks:
+      - hospital-network
+    depends_on:
+      - eureka-server
+
+  eureka-server:
+    image: openjdk:17-jdk-slim
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    volumes:
+      - ./eureka-server:/app
+    working_dir: /app
+    command: ["java", "-jar", "target/eureka-server-1.0.0.jar"]
+    networks:
+      - hospital-network
+
+volumes:
+  doctor-data:
+    driver: local
+
+networks:
+  hospital-network:
+    driver: bridge 

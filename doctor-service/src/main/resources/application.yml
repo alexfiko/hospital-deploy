@@ -1,0 +1,33 @@
+spring:
+  profiles:
+    active: dev  # o "prod" en despliegue
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  info:
+    env:
+      enabled: true
+
+
+info:
+  app:
+    name: Doctor Service
+    description: Servicio para gestión de doctores
+    version: 1.0.0
+
