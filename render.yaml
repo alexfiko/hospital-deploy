@@ -1,7 +1,7 @@
 services:
   - name: doctor-service
-    type: web
     rootDir: doctor-service
+    runtime: docker
     dockerfilePath: Dockerfile
     envVars:
       - key: SPRING_PROFILES_ACTIVE
@@ -12,17 +12,17 @@ services:
         value: http://eureka-server:8761/eureka/
 
   - name: h2-database
-    type: web
+    runtime: docker
     rootDir: h2-database-service
     dockerfilePath: Dockerfile
 
   - name: eureka-server
-    type: web
+    runtime: docker
     rootDir: eureka-server
     dockerfilePath: Dockerfile
 
   - name: api-gateway
-    type: web
+    runtime: docker
     rootDir: api-gateway
     dockerfilePath: Dockerfile
     envVars:
