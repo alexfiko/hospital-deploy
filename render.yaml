@@ -13,7 +13,7 @@ services:
 
   - name: h2-database
     runtime: docker
-    type: database
+    type: web
     rootDir: h2-database-service
     dockerfilePath: Dockerfile
 
