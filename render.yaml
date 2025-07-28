@@ -1,7 +1,7 @@
 services:
   - name: doctor-service
     rootDir: doctor-service
-    type: web
+    type: worker
     dockerfilePath: Dockerfile
     envVars:
       - key: SPRING_PROFILES_ACTIVE
@@ -18,12 +18,12 @@ services:
     dockerfilePath: Dockerfile
 
   - name: eureka-server
-    type: web
+    type: worker
     rootDir: eureka-server
     dockerfilePath: Dockerfile
 
   - name: api-gateway
-    type: web
+    type: worker
     rootDir: api-gateway
     dockerfilePath: Dockerfile
     envVars:
