@@ -32,4 +32,5 @@ RUN ./mvnw clean package -DskipTests
 EXPOSE 8761
 
 # Comando para ejecutar la aplicación
-CMD ["java", "-jar", "target/eureka-server-1.0.0.jar"] 
+#CMD ["java", "-jar", "target/eureka-server-1.0.0.jar"] 
+CMD ["sh", "-c", "java $JAVA_OPTS -jar target/${APP_NAME}-${APP_VERSION}.jar"]

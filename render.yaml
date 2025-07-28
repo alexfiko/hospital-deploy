@@ -1,0 +1,30 @@
+services:
+  - name: doctor-service
+    type: web
+    rootDir: doctor-service
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: SPRING_PROFILES_ACTIVE
+        value: dev
+      - key: SPRING_DATASOURCE_URL
+        value: jdbc:h2:tcp://h2-database:9092/~/hospitaldb
+      - key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+        value: http://eureka-server:8761/eureka/
+
+  - name: h2-database
+    type: web
+    rootDir: h2-database-service
+    dockerfilePath: Dockerfile
+
+  - name: eureka-server
+    type: web
+    rootDir: eureka-server
+    dockerfilePath: Dockerfile
+
+  - name: api-gateway
+    type: web
+    rootDir: api-gateway
+    dockerfilePath: Dockerfile
+    envVars:
+      - key: EUREKA_CLIENT_SERVICEURL_DEFAULTZONE
+        value: http://eureka-server:8761/eureka/

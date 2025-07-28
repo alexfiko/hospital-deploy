@@ -3,6 +3,7 @@ package com.hn.tgu.hospital.controller;
 import com.hn.tgu.hospital.dto.EspecialidadDTO;
 import com.hn.tgu.hospital.service.EspecialidadService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cloud.openfeign.FeignClient;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,6 +12,7 @@ import java.util.List;
 import java.util.Optional;
 
 @RestController
+@FeignClient(name = "especialidad-service", url = "${especialidad.service.url:http://localhost:8080}")
 @RequestMapping("/api/especialidades")
 @CrossOrigin(origins = "*")
 public class EspecialidadController {

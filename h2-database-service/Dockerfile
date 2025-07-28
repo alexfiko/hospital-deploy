@@ -1,22 +1,16 @@
-# Dockerfile para H2 Database Service
-FROM openjdk:17-jdk-slim
+# Usamos imagen de OpenJDK 17 slim
+FROM openjdk:17-slim
 
-# Variables de entorno
-ENV H2_VERSION=2.2.224
-ENV H2_DATA_DIR=/data
-ENV H2_PORT=9092
+# Creamos el directorio de trabajo donde estará el .jar
+WORKDIR /opt/h2
 
-# Directorio de trabajo
-WORKDIR /app
+# Instalamos wget para descargar el archivo del servidor H2
+RUN apt-get update && apt-get install -y wget && \
+    wget https://www.h2database.com/h2.jar
 
-# Descargar H2 Database
-RUN wget -O h2.jar https://repo1.maven.org/maven2/com/h2database/h2/${H2_VERSION}/h2-${H2_VERSION}.jar
+# Exponemos el puerto H2 TCP
+EXPOSE 9092
 
-# Crear directorio para datos
-RUN mkdir -p ${H2_DATA_DIR}
+# Ejecutamos el servidor H2 en modo TCP
+CMD ["java", "-cp", "h2.jar", "org.h2.tools.Server", "-tcp", "-tcpAllowOthers", "-tcpPort", "9092"]
 
-# Exponer puerto
-EXPOSE ${H2_PORT}
-
-# Comando para ejecutar H2 en modo servidor
-CMD ["java", "-cp", "h2.jar", "org.h2.tools.Server", "-tcp", "-tcpPort", "9092", "-tcpAllowOthers", "-baseDir", "/data", "-ifNotExists"] 

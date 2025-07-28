@@ -10,10 +10,10 @@ spring:
   main:
     allow-bean-definition-overriding: true # Si usás Feign más adelante
   datasource:
-    url: jdbc:h2:mem:doctordb
+    url: ${SPRING_DATASOURCE_URL}
     driver-class-name: org.h2.Driver
-    username: sa
-    password: password
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
