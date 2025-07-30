@@ -1,16 +1,9 @@
+server:
+  port: 8090  # O el puerto que prefieras
+  
 spring:
   profiles:
-    active: dev  # o "prod" en despliegue
-
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html
-    operationsSorter: method
-    tagsSorter: alpha
-    display-request-duration: true
-  api-docs:
-    path: /v3/api-docs
-
+    active: prod  # o "prod" en despliegue
 eureka:
   client:
     service-url:
@@ -32,8 +25,6 @@ management:
   info:
     env:
       enabled: true
-
-
 info:
   app:
     name: Doctor Service

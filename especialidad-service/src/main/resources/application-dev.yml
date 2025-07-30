@@ -1,6 +1,6 @@
 spring:
   application:
-    name: doctor-service
+    name: especialidad-service
   cloud:
     compatibility-verifier:
       enabled: false # Opcional para evitar errores por versiones
@@ -24,7 +24,6 @@ spring:
             # Si no usás JTA, podés usar NoJtaPlatform
             #platform: org.hibernate.service.jta.platform.internal.NoJtaPlatform
             platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
-
   h2:
     console:
       enabled: true
@@ -36,11 +35,4 @@ spring:
     default-property-inclusion: non-null
     serialization:
       write-dates-as-timestamps: false
-springdoc:
-  swagger-ui:
-    path: /swagger-ui.html|
-    operationsSorter: method
-    tagsSorter: alpha
-    display-request-duration: true
-  api-docs:
-    path: /v3/api-docs
+

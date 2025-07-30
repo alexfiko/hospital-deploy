@@ -1,6 +1,3 @@
-server:
-  port: 8081 # O el puerto que prefieras
-
 spring:
   application:
     name: doctor-service
@@ -10,18 +7,24 @@ spring:
   main:
     allow-bean-definition-overriding: true # Si usás Feign más adelante
   datasource:
-    url: ${SPRING_DATASOURCE_URL}
+    url: jdbc:h2:/opt/h2/hospitaldb
     driver-class-name: org.h2.Driver
-    username: ${SPRING_DATASOURCE_USERNAME:sa}
-    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    username: sa
+    password: password
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: true
     properties:
       hibernate:
         format-sql: true
+        transaction:
+          jta:
+            # Si no usás JTA, podés usar NoJtaPlatform
+            #platform: org.hibernate.service.jta.platform.internal.NoJtaPlatform
+            platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
+
   h2:
     console:
       enabled: true
@@ -33,7 +36,11 @@ spring:
     default-property-inclusion: non-null
     serialization:
       write-dates-as-timestamps: false
-info:
-  app:
-    name: Doctor Service (Dev)
-    version: 1.0.0
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs

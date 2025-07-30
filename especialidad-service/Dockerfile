@@ -1,35 +1,36 @@
-# Dockerfile para Especialidad Service
-FROM openjdk:17-jdk-slim
+# 👉 Etapa 1: Builder
+FROM maven:3.9.3-eclipse-temurin-17 AS builder
 
-# Variables de entorno
-ENV APP_NAME=especialidad-service
-ENV APP_VERSION=1.0.0
-ENV JAVA_OPTS="-Xmx512m -Xms256m"
-
-# Directorio de trabajo
 WORKDIR /app
 
-# Copiar el archivo pom.xml
+# Variables de entorno de Spring Boot y Eureka
+ENV SPRING_PROFILES_ACTIVE=prod
+# ENV SPRING_PROFILES_ACTIVE=dev  # Descomentar si se quiere usar el perfil de desarrollo
+# Copiar archivos para construir
 COPY pom.xml .
-
-# Copiar el wrapper de Maven
 COPY mvnw .
 COPY .mvn .mvn
-
-# Dar permisos de ejecución al wrapper
 RUN chmod +x mvnw
-
-# Descargar dependencias
 RUN ./mvnw dependency:go-offline -B
 
-# Copiar el código fuente
 COPY src ./src
 
-# Compilar la aplicación
+# Compilar
 RUN ./mvnw clean package -DskipTests
 
-# Exponer el puerto
-EXPOSE 8084
 
-# Comando para ejecutar la aplicación
-CMD ["java", "-jar", "target/especialidad-service-1.0.0.jar"] 
+
+# 👉 Etapa 2: Runtime
+FROM openjdk:17-jdk-slim
+
+WORKDIR /app
+
+# Copiar el .jar desde la etapa "builder"
+COPY --from=builder /app/target/especialidad-service-1.0.0.jar especialidad-service.jar
+
+# Variables de entorno opcionales
+ENV JAVA_OPTS="-Xmx512m -Xms256m"
+
+EXPOSE 8091
+
+CMD ["sh", "-c", "java $JAVA_OPTS -jar especialidad-service.jar"]

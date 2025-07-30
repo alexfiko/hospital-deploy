@@ -1,0 +1,184 @@
+version: '3.8'
+
+services:
+  # ========================================
+  # BASE DE DATOS H2
+  # ========================================
+
+  h2-database:
+    build: 
+      context: ./h2-database-service
+      dockerfile: Dockerfile
+    container_name: h2-database
+    ports:
+      - "9092:9092"  # Puerto TCP para conexiones JDBC
+      - "8082:8082"  # Puerto web para la consola H2
+    environment:
+      - H2_DATA_DIR=/data
+      - H2_PORT=9092
+      - H2_USER=sa
+      - H2_PASSWORD=password
+    command: ["java", "-cp", "h2.jar", "org.h2.tools.Server", "-tcp", "-tcpAllowOthers", "-tcpPort", "9092", "-web", "-webPort", "8082", "-webAllowOthers"]
+    volumes:
+      - h2-data:/opt/h2
+      - ./h2-database-service/init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+    networks:
+      - hospital-network
+    restart: unless-stopped
+  # Consola web opcional para administración
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/console"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # EUREKA SERVER
+  # ========================================
+  eureka-server:
+    build:
+      context: ./eureka-server
+      dockerfile: Dockerfile
+    container_name: eureka-server
+    ports:
+      - "8761:8761"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_REGISTERWITHEUREKA=false
+      - EUREKA_CLIENT_FETCHREGISTRY=false
+    networks:
+      - hospital-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # MICROSERVICIOS
+  # ========================================
+  doctor-service:
+    build: 
+      context: ./doctor-service
+      dockerfile: Dockerfile
+    container_name: doctor-service
+    ports:
+      - "8090:8090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:h2:tcp://h2-database:9092/file:/opt/h2/hospitaldb
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFERIPADDRESS=true
+    networks:
+      - hospital-network
+    restart: unless-stopped
+    depends_on:
+      - h2-database
+      - eureka-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8090/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  especialidad-service:
+    build: 
+      context: ./especialidad-service
+      dockerfile: Dockerfile
+    container_name: especialidad-service
+    ports:
+      - "8091:8091"
+    environment:
+      - SPRING_PROFILES_ACTIVE=prod
+      - SPRING_DATASOURCE_URL=jdbc:h2:tcp://h2-database:9092/file:/opt/h2/hospitaldb
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFERIPADDRESS=true
+    networks:
+      - hospital-network
+    restart: unless-stopped
+    depends_on:
+      - h2-database
+      - eureka-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8091/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+
+
+  # ========================================
+  # API GATEWAY
+  # ========================================
+  api-gateway:
+    build: 
+      context: ./api-gateway
+      dockerfile: Dockerfile
+    container_name: api-gateway
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
+      - EUREKA_INSTANCE_PREFERIPADDRESS=true
+      - SPRING_CLOUD_GATEWAY_DISCOVERY_LOCATOR_ENABLED=true
+    networks:
+      - hospital-network
+    restart: unless-stopped
+    depends_on:
+      - eureka-server
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # ========================================
+  # MONITORING (OPCIONAL)
+  # ========================================
+  # Prometheus para métricas
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+    networks:
+      - hospital-network
+    restart: unless-stopped
+
+  # Grafana para visualización
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+    volumes:
+      - grafana-data:/var/lib/grafana
+    networks:
+      - hospital-network
+    restart: unless-stopped
+
+# ========================================
+# VOLÚMENES
+# ========================================G
+volumes:
+  h2-data:
+    driver: local
+  grafana-data:
+    driver: local
+
+# ========================================
+# REDES
+# ========================================
+networks:
+  hospital-network:
+    driver: bridge 

@@ -15,7 +15,7 @@
 
   <groupId>com.hn.tgu.hospital</groupId>
   <artifactId>api-gateway</artifactId>
-  <version>0.0.1-SNAPSHOT</version>
+  <version>1.0.0</version>
   <name>api-gateway</name>
   <description>API Gateway para enrutar servicios del hospital</description>
 

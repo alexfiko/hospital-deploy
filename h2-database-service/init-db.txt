@@ -1,11 +1,14 @@
 -- Script de inicialización para el ecosistema hospitalario
 -- Este script crea todas las tablas necesarias para todos los microservicios
+-- Cambiar la contraseña de 'sa'
+ALTER USER sa SET PASSWORD 'password';
 
 -- ========================================
 -- TABLAS PARA DOCTOR SERVICE
 -- ========================================
 
 -- Tabla principal de doctores
+DROP TABLE IF EXISTS doctors CASCADE;
 CREATE TABLE IF NOT EXISTS doctors (
     id VARCHAR(36) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -24,6 +27,7 @@ CREATE TABLE IF NOT EXISTS doctors (
 );
 
 -- Tabla para los tags de los doctores
+DROP TABLE IF EXISTS doctor_tags CASCADE;
 CREATE TABLE IF NOT EXISTS doctor_tags (
     doctor_id VARCHAR(36) NOT NULL,
     tag VARCHAR(100) NOT NULL,
@@ -32,6 +36,7 @@ CREATE TABLE IF NOT EXISTS doctor_tags (
 );
 
 -- Tabla para los días laborales
+DROP TABLE IF EXISTS doctor_dias_laborales CASCADE;
 CREATE TABLE IF NOT EXISTS doctor_dias_laborales (
     doctor_id VARCHAR(36) NOT NULL,
     dia VARCHAR(20) NOT NULL,
@@ -40,6 +45,7 @@ CREATE TABLE IF NOT EXISTS doctor_dias_laborales (
 );
 
 -- Tabla para los horarios disponibles por día
+DROP TABLE IF EXISTS doctor_horarios_disponibles CASCADE;
 CREATE TABLE IF NOT EXISTS doctor_horarios_disponibles (
     doctor_id VARCHAR(36) NOT NULL,
     dia VARCHAR(20) NOT NULL,
@@ -53,6 +59,7 @@ CREATE TABLE IF NOT EXISTS doctor_horarios_disponibles (
 -- ========================================
 
 -- Tabla principal de citas
+DROP TABLE IF EXISTS citas CASCADE;
 CREATE TABLE IF NOT EXISTS citas (
     id VARCHAR(36) PRIMARY KEY,
     doctor_id VARCHAR(36) NOT NULL,
@@ -68,6 +75,7 @@ CREATE TABLE IF NOT EXISTS citas (
 );
 
 -- Tabla para pacientes
+DROP TABLE IF EXISTS pacientes CASCADE;
 CREATE TABLE IF NOT EXISTS pacientes (
     id VARCHAR(36) PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
@@ -86,6 +94,7 @@ CREATE TABLE IF NOT EXISTS pacientes (
 -- ========================================
 
 -- Tabla principal de especialidades
+DROP TABLE IF EXISTS especialidades CASCADE;
 CREATE TABLE IF NOT EXISTS especialidades (
     id VARCHAR(36) PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE,
@@ -97,6 +106,7 @@ CREATE TABLE IF NOT EXISTS especialidades (
 );
 
 -- Tabla de relación doctor-especialidad
+DROP TABLE IF EXISTS doctor_especialidades CASCADE;
 CREATE TABLE IF NOT EXISTS doctor_especialidades (
     doctor_id VARCHAR(36) NOT NULL,
     especialidad_id VARCHAR(36) NOT NULL,
@@ -133,6 +143,8 @@ CREATE INDEX IF NOT EXISTS idx_especialidades_activa ON especialidades(activa);
 -- DATOS DE EJEMPLO
 -- ========================================
 
+-- Limpiar tablas de ejemplo
+DELETE FROM especialidades;
 -- Insertar especialidades basadas en especialidades.json
 INSERT INTO especialidades (id, nombre, descripcion, imagen, activa) VALUES
 ('esp-001', 'Cardiología', 'Especialista en enfermedades del corazón', 'https://example.com/cardiologia.jpg', true),
@@ -146,6 +158,8 @@ INSERT INTO especialidades (id, nombre, descripcion, imagen, activa) VALUES
 ('esp-009', 'Endocrinología', 'Especialista en enfermedades del sistema endocrino', 'https://example.com/endocrinologia.jpg', true),
 ('esp-010', 'Urología', 'Especialista en enfermedades del sistema urinario', 'https://example.com/urologia.jpg', true);
 
+-- Limpiar tabla de doctores
+DELETE FROM doctors;
 -- Insertar 50 doctores de ejemplo con datos variados
 INSERT INTO doctors (id, name, specialty, img, experience_years, rating, hospital, available, description, horario_entrada, horario_salida, duracion_cita) VALUES
 ('doc-001', 'Dra. Sofía Torres', 'Pediatría', 'https://randomuser.me/api/portraits/women/1.jpg', 15, 4.8, 'Hospital Central', true, 'Especialista en pediatría con amplia experiencia en atención infantil', '08:00', '17:00', 30),
@@ -205,6 +219,8 @@ INSERT INTO doctors (id, name, specialty, img, experience_years, rating, hospita
 ('doc-049', 'Dra. Constanza Morales', 'Urología', 'https://randomuser.me/api/portraits/women/49.jpg', 17, 4.7, 'Clínica Urológica Especializada', true, 'Uróloga especialista en urología pediátrica', '08:00', '17:00', 30),
 ('doc-050', 'Dr. Benjamín Castro', 'Medicina General', 'https://randomuser.me/api/portraits/men/50.jpg', 21, 4.9, 'Centro de Medicina Familiar Especializada', true, 'Médico general especialista en medicina de urgencias', '07:30', '16:30', 20);
 
+-- Limpiar tabla de doctor_tags
+DELETE FROM doctor_tags;
 -- Insertar tags para todos los doctores
 INSERT INTO doctor_tags (doctor_id, tag) VALUES 
 ('doc-001', 'salud'), ('doc-001', 'consultas'), ('doc-001', 'pediatría'),
@@ -216,21 +232,115 @@ INSERT INTO doctor_tags (doctor_id, tag) VALUES
 ('doc-007', 'salud'), ('doc-007', 'consultas'), ('doc-007', 'oftalmología'),
 ('doc-008', 'salud'), ('doc-008', 'consultas'), ('doc-008', 'endocrinología'),
 ('doc-009', 'salud'), ('doc-009', 'consultas'), ('doc-009', 'urología'),
-('doc-010', 'salud'), ('doc-010', 'consultas'), ('doc-010', 'medicina general');
+('doc-010', 'salud'), ('doc-010', 'consultas'), ('doc-010', 'medicina general'),
+('doc-011', 'salud'), ('doc-011', 'consultas'), ('doc-011', 'cardiología'),
+('doc-012', 'salud'), ('doc-012', 'consultas'), ('doc-012', 'pediatría'),
+('doc-013', 'salud'), ('doc-013', 'consultas'), ('doc-013', 'dermatología'),
+('doc-014', 'salud'), ('doc-014', 'consultas'), ('doc-014', 'ginecología'),
+('doc-015', 'salud'), ('doc-015', 'consultas'), ('doc-015', 'neurología'),
+('doc-016', 'salud'), ('doc-016', 'consultas'), ('doc-016', 'psicología'),
+('doc-017', 'salud'), ('doc-017', 'consultas'), ('doc-017', 'oftalmología'),
+('doc-018', 'salud'), ('doc-018', 'consultas'), ('doc-018', 'endocrinología'),
+('doc-019', 'salud'), ('doc-019', 'consultas'), ('doc-019', 'urología'),
+('doc-020', 'salud'), ('doc-020', 'consultas'), ('doc-020', 'medicina general'),
+('doc-021', 'salud'), ('doc-021', 'consultas'), ('doc-021', 'cardiología'),
+('doc-022', 'salud'), ('doc-022', 'consultas'), ('doc-022', 'pediatría'),
+('doc-023', 'salud'), ('doc-023', 'consultas'), ('doc-023', 'dermatología'),
+('doc-024', 'salud'), ('doc-024', 'consultas'), ('doc-024', 'ginecología'),
+('doc-025', 'salud'), ('doc-025', 'consultas'), ('doc-025', 'neurología'),
+('doc-026', 'salud'), ('doc-026', 'consultas'), ('doc-026', 'psicología'),
+('doc-027', 'salud'), ('doc-027', 'consultas'), ('doc-027', 'oftalmología'),
+('doc-028', 'salud'), ('doc-028', 'consultas'), ('doc-028', 'endocrinología'),
+('doc-029', 'salud'), ('doc-029', 'consultas'), ('doc-029', 'urología'),
+('doc-030', 'salud'), ('doc-030', 'consultas'), ('doc-030', 'medicina general'),
+('doc-031', 'salud'), ('doc-031', 'consultas'), ('doc-031', 'cardiología'),
+('doc-032', 'salud'), ('doc-032', 'consultas'), ('doc-032', 'pediatría'),
+('doc-033', 'salud'), ('doc-033', 'consultas'), ('doc-033', 'dermatología'),
+('doc-034', 'salud'), ('doc-034', 'consultas'), ('doc-034', 'ginecología'),
+('doc-035', 'salud'), ('doc-035', 'consultas'), ('doc-035', 'neurología'),
+('doc-036', 'salud'), ('doc-036', 'consultas'), ('doc-036', 'psicología'),
+('doc-037', 'salud'), ('doc-037', 'consultas'), ('doc-037', 'oftalmología'),
+('doc-038', 'salud'), ('doc-038', 'consultas'), ('doc-038', 'endocrinología'),
+('doc-039', 'salud'), ('doc-039', 'consultas'), ('doc-039', 'urología'),
+('doc-040', 'salud'), ('doc-040', 'consultas'), ('doc-040', 'medicina general'),
+('doc-041', 'salud'), ('doc-041', 'consultas'), ('doc-041', 'cardiología'),
+('doc-042', 'salud'), ('doc-042', 'consultas'), ('doc-042', 'pediatría'),
+('doc-043', 'salud'), ('doc-043', 'consultas'), ('doc-043', 'dermatología'),
+('doc-044', 'salud'), ('doc-044', 'consultas'), ('doc-044', 'ginecología'),
+('doc-045', 'salud'), ('doc-045', 'consultas'), ('doc-045', 'neurología'),
+('doc-046', 'salud'), ('doc-046', 'consultas'), ('doc-046', 'psicología'),
+('doc-047', 'salud'), ('doc-047', 'consultas'), ('doc-047', 'oftalmología'),
+('doc-048', 'salud'), ('doc-048', 'consultas'), ('doc-048', 'endocrinología'),
+('doc-049', 'salud'), ('doc-049', 'consultas'), ('doc-049', 'urología'),
+('doc-050', 'salud'), ('doc-050', 'consultas'), ('doc-050', 'medicina general');
 
+-- Limpiar tabla de doctor_dias_laborales
+DELETE FROM doctor_dias_laborales;
 -- Insertar días laborales para todos los doctores (ejemplo para los primeros 10)
-INSERT INTO doctor_dias_laborales (doctor_id, dia) VALUES 
-('doc-001', 'lunes'), ('doc-001', 'martes'), ('doc-001', 'miércoles'), ('doc-001', 'jueves'), ('doc-001', 'viernes'),
+INSERT INTO doctor_dias_laborales (doctor_id, dia) VALUES
+-- Cardiología
+('doc-003', 'lunes'), ('doc-003', 'martes'), ('doc-003', 'jueves'), ('doc-003', 'viernes'),
+('doc-011', 'lunes'), ('doc-011', 'martes'), ('doc-011', 'jueves'), ('doc-011', 'viernes'),
+('doc-021', 'lunes'), ('doc-021', 'martes'), ('doc-021', 'jueves'), ('doc-021', 'viernes'),
+('doc-031', 'lunes'), ('doc-031', 'martes'), ('doc-031', 'jueves'), ('doc-031', 'viernes'),
+('doc-041', 'lunes'), ('doc-041', 'martes'), ('doc-041', 'jueves'), ('doc-041', 'viernes'),
+-- Pediatría
+('doc-001', 'lunes'), ('doc-001', 'miércoles'), ('doc-001', 'viernes'),
+('doc-012', 'lunes'), ('doc-012', 'miércoles'), ('doc-012', 'viernes'),
+('doc-022', 'lunes'), ('doc-022', 'miércoles'), ('doc-022', 'viernes'),
+('doc-032', 'lunes'), ('doc-032', 'miércoles'), ('doc-032', 'viernes'),
+('doc-042', 'lunes'), ('doc-042', 'miércoles'), ('doc-042', 'viernes'),
+-- Dermatología
+('doc-004', 'martes'), ('doc-004', 'jueves'), ('doc-004', 'sábado'),
+('doc-013', 'martes'), ('doc-013', 'jueves'), ('doc-013', 'sábado'),
+('doc-023', 'martes'), ('doc-023', 'jueves'), ('doc-023', 'sábado'),
+('doc-033', 'martes'), ('doc-033', 'jueves'), ('doc-033', 'sábado'),
+('doc-043', 'martes'), ('doc-043', 'jueves'), ('doc-043', 'sábado'),
+-- Ginecología
 ('doc-002', 'lunes'), ('doc-002', 'miércoles'), ('doc-002', 'viernes'),
-('doc-003', 'martes'), ('doc-003', 'jueves'), ('doc-003', 'sábado'),
-('doc-004', 'lunes'), ('doc-004', 'martes'), ('doc-004', 'miércoles'), ('doc-004', 'jueves'), ('doc-004', 'viernes'),
-('doc-005', 'lunes'), ('doc-005', 'miércoles'), ('doc-005', 'viernes'),
+('doc-014', 'lunes'), ('doc-014', 'miércoles'), ('doc-014', 'viernes'),
+('doc-024', 'lunes'), ('doc-024', 'miércoles'), ('doc-024', 'viernes'),
+('doc-034', 'lunes'), ('doc-034', 'miércoles'), ('doc-034', 'viernes'),
+('doc-044', 'lunes'), ('doc-044', 'miércoles'), ('doc-044', 'viernes'),
+-- Neurología
+('doc-005', 'lunes'), ('doc-005', 'miércoles'), ('doc-005', 'jueves'),
+('doc-015', 'lunes'), ('doc-015', 'miércoles'), ('doc-015', 'jueves'),
+('doc-025', 'lunes'), ('doc-025', 'miércoles'), ('doc-025', 'jueves'),
+('doc-035', 'lunes'), ('doc-035', 'miércoles'), ('doc-035', 'jueves'),
+('doc-045', 'lunes'), ('doc-045', 'miércoles'), ('doc-045', 'jueves'),
+-- Psicología
 ('doc-006', 'martes'), ('doc-006', 'jueves'), ('doc-006', 'sábado'),
+('doc-016', 'martes'), ('doc-016', 'jueves'), ('doc-016', 'sábado'),
+('doc-026', 'martes'), ('doc-026', 'jueves'), ('doc-026', 'sábado'),
+('doc-036', 'martes'), ('doc-036', 'jueves'), ('doc-036', 'sábado'),
+('doc-046', 'martes'), ('doc-046', 'jueves'), ('doc-046', 'sábado'),
+-- Oftalmología
 ('doc-007', 'lunes'), ('doc-007', 'martes'), ('doc-007', 'miércoles'), ('doc-007', 'jueves'), ('doc-007', 'viernes'),
+('doc-017', 'lunes'), ('doc-017', 'martes'), ('doc-017', 'miércoles'), ('doc-017', 'jueves'), ('doc-017', 'viernes'),
+('doc-027', 'lunes'), ('doc-027', 'martes'), ('doc-027', 'miércoles'), ('doc-027', 'jueves'), ('doc-027', 'viernes'),
+('doc-037', 'lunes'), ('doc-037', 'martes'), ('doc-037', 'miércoles'), ('doc-037', 'jueves'), ('doc-037', 'viernes'),
+('doc-047', 'lunes'), ('doc-047', 'martes'), ('doc-047', 'miércoles'), ('doc-047', 'jueves'), ('doc-047', 'viernes'),
+-- Endocrinología
 ('doc-008', 'lunes'), ('doc-008', 'miércoles'), ('doc-008', 'viernes'),
+('doc-018', 'lunes'), ('doc-018', 'miércoles'), ('doc-018', 'viernes'),
+('doc-028', 'lunes'), ('doc-028', 'miércoles'), ('doc-028', 'viernes'),
+('doc-038', 'lunes'), ('doc-038', 'miércoles'), ('doc-038', 'viernes'),
+('doc-048', 'lunes'), ('doc-048', 'miércoles'), ('doc-048', 'viernes'),
+-- Urología
 ('doc-009', 'martes'), ('doc-009', 'jueves'), ('doc-009', 'sábado'),
-('doc-010', 'lunes'), ('doc-010', 'martes'), ('doc-010', 'miércoles'), ('doc-010', 'jueves'), ('doc-010', 'viernes');
+('doc-019', 'martes'), ('doc-019', 'jueves'), ('doc-019', 'sábado'),
+('doc-029', 'martes'), ('doc-029', 'jueves'), ('doc-029', 'sábado'),
+('doc-039', 'martes'), ('doc-039', 'jueves'), ('doc-039', 'sábado'),
+('doc-049', 'martes'), ('doc-049', 'jueves'), ('doc-049', 'sábado'),
+-- Medicina General
+('doc-010', 'lunes'), ('doc-010', 'martes'), ('doc-010', 'miércoles'), ('doc-010', 'jueves'), ('doc-010', 'viernes'),
+('doc-020', 'lunes'), ('doc-020', 'martes'), ('doc-020', 'miércoles'), ('doc-020', 'jueves'), ('doc-020', 'viernes'),
+('doc-030', 'lunes'), ('doc-030', 'martes'), ('doc-030', 'miércoles'), ('doc-030', 'jueves'), ('doc-030', 'viernes'),
+('doc-040', 'lunes'), ('doc-040', 'martes'), ('doc-040', 'miércoles'), ('doc-040', 'jueves'), ('doc-040', 'viernes'),
+('doc-050', 'lunes'), ('doc-050', 'martes'), ('doc-050', 'miércoles'), ('doc-050', 'jueves'), ('doc-050', 'viernes');
 
+-- Limpiar tabla de pacientes
+DELETE FROM pacientes;
 -- Insertar pacientes de ejemplo
 INSERT INTO pacientes (id, nombre, apellido, email, telefono, fecha_nacimiento, genero, direccion) VALUES
 ('pac-001', 'María', 'González', 'maria.gonzalez@email.com', '+504 9999-0001', '1990-05-15', 'Femenino', 'Tegucigalpa, Honduras'),
@@ -244,6 +354,8 @@ INSERT INTO pacientes (id, nombre, apellido, email, telefono, fecha_nacimiento, 
 ('pac-009', 'Isabel', 'Sánchez', 'isabel.sanchez@email.com', '+504 9999-0009', '1993-06-25', 'Femenino', 'Juticalpa, Honduras'),
 ('pac-010', 'Francisco', 'Ramírez', 'francisco.ramirez@email.com', '+504 9999-0010', '1986-01-18', 'Masculino', 'Santa Rosa de Copán, Honduras');
 
+-- Limpiar tabla de citas
+DELETE FROM citas;
 -- Insertar citas de ejemplo
 INSERT INTO citas (id, doctor_id, paciente_id, fecha, hora, estado, motivo, notas) VALUES
 ('cit-001', 'doc-001', 'pac-001', '2024-01-15', '09:00', 'CONFIRMADA', 'Consulta de rutina', 'Paciente con buen estado general'),
@@ -257,6 +369,8 @@ INSERT INTO citas (id, doctor_id, paciente_id, fecha, hora, estado, motivo, nota
 ('cit-009', 'doc-009', 'pac-009', '2024-01-23', '10:00', 'PENDIENTE', 'Consulta urológica', 'Paciente con síntomas urinarios'),
 ('cit-010', 'doc-010', 'pac-010', '2024-01-24', '16:00', 'CONFIRMADA', 'Consulta general', 'Chequeo anual');
 
+-- Limpiar tabla de especialidades
+DELETE FROM doctor_especialidades;
 -- Relacionar doctores con especialidades
 INSERT INTO doctor_especialidades (doctor_id, especialidad_id) VALUES
 ('doc-001', 'esp-003'), ('doc-002', 'esp-006'), ('doc-003', 'esp-001'),

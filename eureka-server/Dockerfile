@@ -11,8 +11,6 @@ WORKDIR /app
 
 # Copiar el archivo pom.xml
 COPY pom.xml .
-
-# Copiar el wrapper de Maven
 COPY mvnw .
 COPY .mvn .mvn
 

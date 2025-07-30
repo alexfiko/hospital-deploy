@@ -1,37 +1,44 @@
 server:
-  port: 8083 # O el puerto que prefieras
+  port: 8091  # Cambiado de 8084 a 8091
 
 spring:
-  application:
-    name: especialidad-service
-  cloud:
-    compatibility-verifier:
-      enabled: false # Opcional para evitar errores por versiones
-  main:
-    allow-bean-definition-overriding: true # Si usás Feign más adelante
-
+  profiles:
+    active: prod  # o "prod" en despliegue
 eureka:
   client:
     service-url:
-      defaultZone: http://localhost:8761/eureka
+      defaultZone: http://localhost:8761/eureka/
     register-with-eureka: true
     fetch-registry: true
   instance:
-    hostname: localhost
-    prefer-ip-address: false
+    prefer-ip-address: true
     instance-id: ${spring.application.name}:${server.port}
 
 management:
   endpoints:
     web:
       exposure:
-        include: health, info
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
   info:
     env:
       enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
 
 info:
   app:
     name: especialidad Service
     description: Servicio para gestión de especialidades médicas
     version: 1.0.0
+
+    

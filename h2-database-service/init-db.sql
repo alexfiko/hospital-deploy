@@ -1,11 +1,14 @@
 -- Script de inicialización para el ecosistema hospitalario
 -- Este script crea todas las tablas necesarias para todos los microservicios
+-- Cambiar la contraseña de 'sa'
+ALTER USER sa SET PASSWORD 'password';
 
 -- ========================================
 -- TABLAS PARA DOCTOR SERVICE
 -- ========================================
 
 -- Tabla principal de doctores
+DROP TABLE IF EXISTS doctors CASCADE;
 CREATE TABLE IF NOT EXISTS doctors (
     id VARCHAR(36) PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
@@ -24,6 +27,7 @@ CREATE TABLE IF NOT EXISTS doctors (
 );
 
 -- Tabla para los tags de los doctores
+DROP TABLE IF EXISTS doctor_tags CASCADE;
 CREATE TABLE IF NOT EXISTS doctor_tags (
     doctor_id VARCHAR(36) NOT NULL,
     tag VARCHAR(100) NOT NULL,
@@ -32,6 +36,7 @@ CREATE TABLE IF NOT EXISTS doctor_tags (
 );
 
 -- Tabla para los días laborales
+DROP TABLE IF EXISTS doctor_dias_laborales CASCADE;
 CREATE TABLE IF NOT EXISTS doctor_dias_laborales (
     doctor_id VARCHAR(36) NOT NULL,
     dia VARCHAR(20) NOT NULL,
@@ -40,6 +45,7 @@ CREATE TABLE IF NOT EXISTS doctor_dias_laborales (
 );
 
 -- Tabla para los horarios disponibles por día
+DROP TABLE IF EXISTS doctor_horarios_disponibles CASCADE;
 CREATE TABLE IF NOT EXISTS doctor_horarios_disponibles (
     doctor_id VARCHAR(36) NOT NULL,
     dia VARCHAR(20) NOT NULL,
@@ -53,6 +59,7 @@ CREATE TABLE IF NOT EXISTS doctor_horarios_disponibles (
 -- ========================================
 
 -- Tabla principal de citas
+DROP TABLE IF EXISTS citas CASCADE;
 CREATE TABLE IF NOT EXISTS citas (
     id VARCHAR(36) PRIMARY KEY,
     doctor_id VARCHAR(36) NOT NULL,
@@ -68,6 +75,7 @@ CREATE TABLE IF NOT EXISTS citas (
 );
 
 -- Tabla para pacientes
+DROP TABLE IF EXISTS pacientes CASCADE;
 CREATE TABLE IF NOT EXISTS pacientes (
     id VARCHAR(36) PRIMARY KEY,
     nombre VARCHAR(255) NOT NULL,
@@ -86,6 +94,7 @@ CREATE TABLE IF NOT EXISTS pacientes (
 -- ========================================
 
 -- Tabla principal de especialidades
+DROP TABLE IF EXISTS especialidades CASCADE;
 CREATE TABLE IF NOT EXISTS especialidades (
     id VARCHAR(36) PRIMARY KEY,
     nombre VARCHAR(100) NOT NULL UNIQUE,
@@ -97,6 +106,7 @@ CREATE TABLE IF NOT EXISTS especialidades (
 );
 
 -- Tabla de relación doctor-especialidad
+DROP TABLE IF EXISTS doctor_especialidades CASCADE;
 CREATE TABLE IF NOT EXISTS doctor_especialidades (
     doctor_id VARCHAR(36) NOT NULL,
     especialidad_id VARCHAR(36) NOT NULL,
@@ -133,6 +143,8 @@ CREATE INDEX IF NOT EXISTS idx_especialidades_activa ON especialidades(activa);
 -- DATOS DE EJEMPLO
 -- ========================================
 
+-- Limpiar tablas de ejemplo
+DELETE FROM especialidades;
 -- Insertar especialidades basadas en especialidades.json
 INSERT INTO especialidades (id, nombre, descripcion, imagen, activa) VALUES
 ('esp-001', 'Cardiología', 'Especialista en enfermedades del corazón', 'https://example.com/cardiologia.jpg', true),
@@ -146,6 +158,8 @@ INSERT INTO especialidades (id, nombre, descripcion, imagen, activa) VALUES
 ('esp-009', 'Endocrinología', 'Especialista en enfermedades del sistema endocrino', 'https://example.com/endocrinologia.jpg', true),
 ('esp-010', 'Urología', 'Especialista en enfermedades del sistema urinario', 'https://example.com/urologia.jpg', true);
 
+-- Limpiar tabla de doctores
+DELETE FROM doctors;
 -- Insertar 50 doctores de ejemplo con datos variados
 INSERT INTO doctors (id, name, specialty, img, experience_years, rating, hospital, available, description, horario_entrada, horario_salida, duracion_cita) VALUES
 ('doc-001', 'Dra. Sofía Torres', 'Pediatría', 'https://randomuser.me/api/portraits/women/1.jpg', 15, 4.8, 'Hospital Central', true, 'Especialista en pediatría con amplia experiencia en atención infantil', '08:00', '17:00', 30),
@@ -205,6 +219,8 @@ INSERT INTO doctors (id, name, specialty, img, experience_years, rating, hospita
 ('doc-049', 'Dra. Constanza Morales', 'Urología', 'https://randomuser.me/api/portraits/women/49.jpg', 17, 4.7, 'Clínica Urológica Especializada', true, 'Uróloga especialista en urología pediátrica', '08:00', '17:00', 30),
 ('doc-050', 'Dr. Benjamín Castro', 'Medicina General', 'https://randomuser.me/api/portraits/men/50.jpg', 21, 4.9, 'Centro de Medicina Familiar Especializada', true, 'Médico general especialista en medicina de urgencias', '07:30', '16:30', 20);
 
+-- Limpiar tabla de doctor_tags
+DELETE FROM doctor_tags;
 -- Insertar tags para todos los doctores
 INSERT INTO doctor_tags (doctor_id, tag) VALUES 
 ('doc-001', 'salud'), ('doc-001', 'consultas'), ('doc-001', 'pediatría'),
@@ -216,7 +232,7 @@ INSERT INTO doctor_tags (doctor_id, tag) VALUES
 ('doc-007', 'salud'), ('doc-007', 'consultas'), ('doc-007', 'oftalmología'),
 ('doc-008', 'salud'), ('doc-008', 'consultas'), ('doc-008', 'endocrinología'),
 ('doc-009', 'salud'), ('doc-009', 'consultas'), ('doc-009', 'urología'),
-('doc-010', 'salud'), ('doc-010', 'consultas'), ('doc-010', 'medicina general');
+('doc-010', 'salud'), ('doc-010', 'consultas'), ('doc-010', 'medicina general'),
 ('doc-011', 'salud'), ('doc-011', 'consultas'), ('doc-011', 'cardiología'),
 ('doc-012', 'salud'), ('doc-012', 'consultas'), ('doc-012', 'pediatría'),
 ('doc-013', 'salud'), ('doc-013', 'consultas'), ('doc-013', 'dermatología'),
@@ -258,8 +274,9 @@ INSERT INTO doctor_tags (doctor_id, tag) VALUES
 ('doc-049', 'salud'), ('doc-049', 'consultas'), ('doc-049', 'urología'),
 ('doc-050', 'salud'), ('doc-050', 'consultas'), ('doc-050', 'medicina general');
 
+-- Limpiar tabla de doctor_dias_laborales
+DELETE FROM doctor_dias_laborales;
 -- Insertar días laborales para todos los doctores (ejemplo para los primeros 10)
-INSERT INTO doctor_dias_laborales (doctor_id, dia) VALUES 
 INSERT INTO doctor_dias_laborales (doctor_id, dia) VALUES
 -- Cardiología
 ('doc-003', 'lunes'), ('doc-003', 'martes'), ('doc-003', 'jueves'), ('doc-003', 'viernes'),
@@ -321,6 +338,9 @@ INSERT INTO doctor_dias_laborales (doctor_id, dia) VALUES
 ('doc-030', 'lunes'), ('doc-030', 'martes'), ('doc-030', 'miércoles'), ('doc-030', 'jueves'), ('doc-030', 'viernes'),
 ('doc-040', 'lunes'), ('doc-040', 'martes'), ('doc-040', 'miércoles'), ('doc-040', 'jueves'), ('doc-040', 'viernes'),
 ('doc-050', 'lunes'), ('doc-050', 'martes'), ('doc-050', 'miércoles'), ('doc-050', 'jueves'), ('doc-050', 'viernes');
+
+-- Limpiar tabla de pacientes
+DELETE FROM pacientes;
 -- Insertar pacientes de ejemplo
 INSERT INTO pacientes (id, nombre, apellido, email, telefono, fecha_nacimiento, genero, direccion) VALUES
 ('pac-001', 'María', 'González', 'maria.gonzalez@email.com', '+504 9999-0001', '1990-05-15', 'Femenino', 'Tegucigalpa, Honduras'),
@@ -334,6 +354,8 @@ INSERT INTO pacientes (id, nombre, apellido, email, telefono, fecha_nacimiento, 
 ('pac-009', 'Isabel', 'Sánchez', 'isabel.sanchez@email.com', '+504 9999-0009', '1993-06-25', 'Femenino', 'Juticalpa, Honduras'),
 ('pac-010', 'Francisco', 'Ramírez', 'francisco.ramirez@email.com', '+504 9999-0010', '1986-01-18', 'Masculino', 'Santa Rosa de Copán, Honduras');
 
+-- Limpiar tabla de citas
+DELETE FROM citas;
 -- Insertar citas de ejemplo
 INSERT INTO citas (id, doctor_id, paciente_id, fecha, hora, estado, motivo, notas) VALUES
 ('cit-001', 'doc-001', 'pac-001', '2024-01-15', '09:00', 'CONFIRMADA', 'Consulta de rutina', 'Paciente con buen estado general'),
@@ -347,6 +369,8 @@ INSERT INTO citas (id, doctor_id, paciente_id, fecha, hora, estado, motivo, nota
 ('cit-009', 'doc-009', 'pac-009', '2024-01-23', '10:00', 'PENDIENTE', 'Consulta urológica', 'Paciente con síntomas urinarios'),
 ('cit-010', 'doc-010', 'pac-010', '2024-01-24', '16:00', 'CONFIRMADA', 'Consulta general', 'Chequeo anual');
 
+-- Limpiar tabla de especialidades
+DELETE FROM doctor_especialidades;
 -- Relacionar doctores con especialidades
 INSERT INTO doctor_especialidades (doctor_id, especialidad_id) VALUES
 ('doc-001', 'esp-003'), ('doc-002', 'esp-006'), ('doc-003', 'esp-001'),
