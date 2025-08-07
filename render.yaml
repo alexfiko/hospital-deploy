@@ -103,19 +103,4 @@ services:
     plan: starter
     autoDeploy: true
 
-  - type: web
-    name: prometheus
-    runtime: docker
-    image: prom/prometheus:latest
-    plan: starter
-    autoDeploy: true
-
-  - type: web
-    name: grafana
-    runtime: docker
-    image: grafana/grafana:latest
-    envVars:
-      - key: GF_SECURITY_ADMIN_PASSWORD
-        value: admin
-    plan: starter
-    autoDeploy: true
+ 
