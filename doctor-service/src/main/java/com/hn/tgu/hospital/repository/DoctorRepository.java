@@ -23,11 +23,23 @@ public interface DoctorRepository extends JpaRepository<Doctor, String> {
   // Buscar por nombre (contiene)
   List<Doctor> findByNameContainingIgnoreCase(String name);
   
+  // Buscar por nombre que empiece con (para autocompletado)
+  List<Doctor> findByNameStartingWithIgnoreCase(String name);
+  
   // Buscar por especialidad y disponibilidad
   List<Doctor> findBySpecialtyAndAvailable(String specialty, boolean available);
   
   // Buscar por hospital y disponibilidad
   List<Doctor> findByHospitalAndAvailable(String hospital, boolean available);
+  
+  // Buscar por rango de experiencia
+  List<Doctor> findByExperienceYearsBetween(int minYears, int maxYears);
+  
+  // Buscar por rango de rating
+  List<Doctor> findByRatingBetween(double minRating, double maxRating);
+  
+  // Buscar por tags
+  List<Doctor> findByTagsIn(List<String> tags);
   
   // Query personalizada para buscar por múltiples criterios
   @Query("SELECT d FROM Doctor d WHERE " +

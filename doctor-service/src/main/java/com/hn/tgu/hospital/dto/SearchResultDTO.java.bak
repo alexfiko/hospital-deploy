@@ -1,0 +1,80 @@
+package com.hn.tgu.hospital.dto;
+
+import com.hn.tgu.hospital.search.DoctorIndex;
+
+import java.util.List;
+import java.util.Map;
+
+public class SearchResultDTO {
+    private List<DoctorIndex> doctores;
+    private Map<String, Object> facets;
+    private long totalElements;
+    private long totalPages;
+    private int currentPage;
+    private List<String> sugerencias;
+
+    public SearchResultDTO() {}
+
+    public SearchResultDTO(List<DoctorIndex> doctores, Map<String, Object> facets, 
+                         long totalElements, long totalPages, int currentPage) {
+        this.doctores = doctores;
+        this.facets = facets;
+        this.totalElements = totalElements;
+        this.totalPages = totalPages;
+        this.currentPage = currentPage;
+    }
+
+    public SearchResultDTO(List<DoctorIndex> doctores, List<String> sugerencias) {
+        this.doctores = doctores;
+        this.sugerencias = sugerencias;
+    }
+
+    // Getters y Setters
+    public List<DoctorIndex> getDoctores() {
+        return doctores;
+    }
+
+    public void setDoctores(List<DoctorIndex> doctores) {
+        this.doctores = doctores;
+    }
+
+    public Map<String, Object> getFacets() {
+        return facets;
+    }
+
+    public void setFacets(Map<String, Object> facets) {
+        this.facets = facets;
+    }
+
+    public long getTotalElements() {
+        return totalElements;
+    }
+
+    public void setTotalElements(long totalElements) {
+        this.totalElements = totalElements;
+    }
+
+    public long getTotalPages() {
+        return totalPages;
+    }
+
+    public void setTotalPages(long totalPages) {
+        this.totalPages = totalPages;
+    }
+
+    public int getCurrentPage() {
+        return currentPage;
+    }
+
+    public void setCurrentPage(int currentPage) {
+        this.currentPage = currentPage;
+    }
+
+    public List<String> getSugerencias() {
+        return sugerencias;
+    }
+
+    public void setSugerencias(List<String> sugerencias) {
+        this.sugerencias = sugerencias;
+    }
+}

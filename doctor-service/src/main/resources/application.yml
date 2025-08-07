@@ -1,9 +1,19 @@
 server:
-  port: 8090  # O el puerto que prefieras
+  port: 8081  # O el puerto que prefieras
   
 spring:
   profiles:
     active: prod  # o "prod" en despliegue
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+
 eureka:
   client:
     service-url:

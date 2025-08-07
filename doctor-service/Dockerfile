@@ -5,6 +5,7 @@ WORKDIR /app
 
 # Variables de entorno de Spring Boot y Eureka
 ENV SPRING_PROFILES_ACTIVE=dev 
+ENV BONSAI_URL=https://j78qu5rxgf:c3y0l8bm9z@hospital-cluster-5303791460.us-east-1.bonsaisearch.net:443
 # Copiar archivos para construir
 COPY pom.xml .
 COPY mvnw .

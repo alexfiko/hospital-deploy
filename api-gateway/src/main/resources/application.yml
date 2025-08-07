@@ -48,10 +48,16 @@ management:
   endpoints:
     web:
       exposure:
-        include: health, info, gateway, metrics
+        include: health,info,metrics,prometheus
   endpoint:
-    gateway:
+    health:
+      show-details: always
+    prometheus:
       enabled: true
+    metrics:
+      export:
+        prometheus:
+          enabled: true
   info:
     env:
       enabled: true

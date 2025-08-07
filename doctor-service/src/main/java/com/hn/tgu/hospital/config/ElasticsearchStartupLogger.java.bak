@@ -1,0 +1,33 @@
+package com.hn.tgu.hospital.config;
+
+import com.hn.tgu.hospital.search.DoctorIndex;
+import com.hn.tgu.hospital.search.DoctorSearchRepository;
+import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.lang.Nullable;
+import org.springframework.stereotype.Component;
+
+import java.util.Collection;
+
+@Component
+public class ElasticsearchStartupLogger {
+
+    @Autowired(required = false)
+    @Nullable
+    private DoctorSearchRepository doctorSearchRepository;
+
+    @PostConstruct
+    public void verificarConexion() {
+        if (doctorSearchRepository == null) {
+            System.err.println("⚠️ Elasticsearch no está disponible o no se pudo conectar. El sistema seguirá funcionando sin búsqueda avanzada.");
+            return;
+        }
+
+        try {
+            Iterable<DoctorIndex> doctores = doctorSearchRepository.findAll();
+            System.out.println("✅ Conexión a Elasticsearch establecida. Total doctores indexados: " + ((Collection<?>) doctores).size());
+        } catch (Exception e) {
+            System.err.println("❌ Error al conectar con Elasticsearch: " + e.getMessage());
+        }
+    }
+}

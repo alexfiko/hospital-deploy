@@ -9,6 +9,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class DoctorService {
@@ -20,90 +21,154 @@ public class DoctorService {
   private DoctorMapper doctorMapper;
 
   // Obtener todos los doctores
-  public List<DoctorDTO> obtenerDoctores() {
-    List<Doctor> doctors = doctorRepository.findAll();
-    return doctorMapper.toDTOList(doctors);
+  public List<Doctor> obtenerTodos() {
+    return doctorRepository.findAll();
   }
-  
+
   // Obtener doctor por ID
-  public Optional<DoctorDTO> obtenerDoctorPorId(String id) {
-    Optional<Doctor> doctor = doctorRepository.findById(id);
-    return doctor.map(doctorMapper::toDTO);
+  public Doctor obtenerPorId(String id) {
+    return doctorRepository.findById(id).orElse(null);
   }
-  
+
   // Crear nuevo doctor
-  public DoctorDTO crearDoctor(DoctorDTO doctorDTO) {
+  public Doctor crear(Doctor doctor) {
+    return doctorRepository.save(doctor);
+  }
+
+  // Actualizar doctor
+  public Doctor actualizar(Doctor doctor) {
+    return doctorRepository.save(doctor);
+  }
+
+  // Eliminar doctor
+  public void eliminar(String id) {
+    doctorRepository.deleteById(id);
+  }
+
+  // Buscar por especialidad
+  public List<Doctor> buscarPorEspecialidad(String specialty) {
+    return doctorRepository.findBySpecialty(specialty);
+  }
+
+  // Buscar por hospital
+  public List<Doctor> buscarPorHospital(String hospital) {
+    return doctorRepository.findByHospital(hospital);
+  }
+
+  // Buscar por disponibilidad
+  public List<Doctor> buscarPorDisponibilidad(boolean available) {
+    return doctorRepository.findByAvailable(available);
+  }
+
+  // Buscar por nombre
+  public List<Doctor> buscarPorNombre(String name) {
+    return doctorRepository.findByNameContainingIgnoreCase(name);
+  }
+
+  // Buscar con filtros
+  public List<Doctor> buscarConFiltros(String specialty, String hospital, Boolean available, String name) {
+    return doctorRepository.findByFilters(specialty, hospital, available, name);
+  }
+
+  // Verificar si existe
+  public boolean existe(String id) {
+    return doctorRepository.existsById(id);
+  }
+
+  // Contar doctores
+  public long contar() {
+    return doctorRepository.count();
+  }
+
+  // Obtener doctores disponibles
+  public List<Doctor> obtenerDisponibles() {
+    return doctorRepository.findByAvailable(true);
+  }
+
+  // Métodos legacy para compatibilidad
+  public List<DoctorDTO> getAllDoctors() {
+    List<Doctor> doctors = doctorRepository.findAll();
+    return doctors.stream()
+        .map(doctorMapper::toDTO)
+        .collect(Collectors.toList());
+  }
+
+  public Optional<DoctorDTO> getDoctorById(String id) {
+    return doctorRepository.findById(id)
+        .map(doctorMapper::toDTO);
+  }
+
+  public DoctorDTO createDoctor(DoctorDTO doctorDTO) {
     Doctor doctor = doctorMapper.toEntity(doctorDTO);
     Doctor savedDoctor = doctorRepository.save(doctor);
     return doctorMapper.toDTO(savedDoctor);
   }
-  
-  // Actualizar doctor
-  public Optional<DoctorDTO> actualizarDoctor(String id, DoctorDTO doctorDTO) {
-    Optional<Doctor> existingDoctor = doctorRepository.findById(id);
-    
-    if (existingDoctor.isPresent()) {
-      Doctor doctor = existingDoctor.get();
-      doctorMapper.updateEntity(doctor, doctorDTO);
-      Doctor updatedDoctor = doctorRepository.save(doctor);
-      return Optional.of(doctorMapper.toDTO(updatedDoctor));
-    }
-    
-    return Optional.empty();
+
+  public Optional<DoctorDTO> updateDoctor(String id, DoctorDTO doctorDTO) {
+    return doctorRepository.findById(id)
+        .map(existingDoctor -> {
+          doctorDTO.id = id;
+          Doctor doctor = doctorMapper.toEntity(doctorDTO);
+          Doctor savedDoctor = doctorRepository.save(doctor);
+          return doctorMapper.toDTO(savedDoctor);
+        });
   }
-  
-  // Eliminar doctor
-  public boolean eliminarDoctor(String id) {
+
+  public boolean deleteDoctor(String id) {
     if (doctorRepository.existsById(id)) {
       doctorRepository.deleteById(id);
       return true;
     }
     return false;
   }
-  
-  // Buscar por especialidad
-  public List<DoctorDTO> buscarPorEspecialidad(String specialty) {
+
+  public List<DoctorDTO> findBySpecialty(String specialty) {
     List<Doctor> doctors = doctorRepository.findBySpecialty(specialty);
-    return doctorMapper.toDTOList(doctors);
+    return doctors.stream()
+        .map(doctorMapper::toDTO)
+        .collect(Collectors.toList());
   }
-  
-  // Buscar por hospital
-  public List<DoctorDTO> buscarPorHospital(String hospital) {
+
+  public List<DoctorDTO> findByHospital(String hospital) {
     List<Doctor> doctors = doctorRepository.findByHospital(hospital);
-    return doctorMapper.toDTOList(doctors);
+    return doctors.stream()
+        .map(doctorMapper::toDTO)
+        .collect(Collectors.toList());
   }
-  
-  // Buscar por disponibilidad
-  public List<DoctorDTO> buscarPorDisponibilidad(boolean available) {
+
+  public List<DoctorDTO> findByAvailable(boolean available) {
     List<Doctor> doctors = doctorRepository.findByAvailable(available);
-    return doctorMapper.toDTOList(doctors);
+    return doctors.stream()
+        .map(doctorMapper::toDTO)
+        .collect(Collectors.toList());
   }
-  
-  // Buscar por nombre
-  public List<DoctorDTO> buscarPorNombre(String name) {
+
+  public List<DoctorDTO> findByName(String name) {
     List<Doctor> doctors = doctorRepository.findByNameContainingIgnoreCase(name);
-    return doctorMapper.toDTOList(doctors);
+    return doctors.stream()
+        .map(doctorMapper::toDTO)
+        .collect(Collectors.toList());
   }
-  
-  // Buscar con filtros múltiples
-  public List<DoctorDTO> buscarConFiltros(String specialty, String hospital, Boolean available, String name) {
+
+  public List<DoctorDTO> findByFilters(String specialty, String hospital, Boolean available, String name) {
     List<Doctor> doctors = doctorRepository.findByFilters(specialty, hospital, available, name);
-    return doctorMapper.toDTOList(doctors);
+    return doctors.stream()
+        .map(doctorMapper::toDTO)
+        .collect(Collectors.toList());
   }
-  
-  // Verificar si existe doctor por ID
-  public boolean existeDoctor(String id) {
+
+  public boolean existsById(String id) {
     return doctorRepository.existsById(id);
   }
-  
-  // Contar total de doctores
-  public long contarDoctores() {
+
+  public long count() {
     return doctorRepository.count();
   }
-  
-  // Obtener doctores disponibles
-  public List<DoctorDTO> obtenerDoctoresDisponibles() {
+
+  public List<DoctorDTO> getAvailableDoctors() {
     List<Doctor> doctors = doctorRepository.findByAvailable(true);
-    return doctorMapper.toDTOList(doctors);
+    return doctors.stream()
+        .map(doctorMapper::toDTO)
+        .collect(Collectors.toList());
   }
 }

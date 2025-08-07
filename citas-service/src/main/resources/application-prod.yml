@@ -1,0 +1,81 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: citas-service
+  cloud:
+    compatibility-verifier:
+      enabled: false # Opcional para evitar errores por versiones
+  main:
+    allow-bean-definition-overriding: true # Si usás Feign más adelante
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:h2:tcp://h2-database:9092/file:/opt/h2/hospitaldb}
+    driver-class-name: org.h2.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:sa}
+    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    type: com.zaxxer.hikari.HikariDataSource
+  jpa:
+    database-platform: org.hibernate.dialect.H2Dialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format-sql: true
+        transaction:
+          jta:
+            # Si no usás JTA, podés usar NoJtaPlatform
+            #platform: org.hibernate.service.jta.platform.internal.NoJtaPlatform
+            platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
+  h2:
+    console:
+      enabled: true
+      path: /h2-console
+  flyway:
+    enabled: false
+
+  jackson:
+    default-property-inclusion: non-null
+    serialization:
+      write-dates-as-timestamps: false
+
+# Configuración de Eureka
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:8761/eureka/}
+  instance:
+    prefer-ip-address: ${EUREKA_INSTANCE_PREFERIPADDRESS:true}
+    hostname: ${HOSTNAME:localhost}
+
+# Configuración de Actuator
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+
+# Configuración de Swagger
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+
+# Configuración de OpenFeign
+feign:
+  client:
+    config:
+      default:
+        connectTimeout: 5000
+        readTimeout: 5000
+        loggerLevel: basic
+  circuitbreaker:
+    enabled: true

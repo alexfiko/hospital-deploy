@@ -1,0 +1,103 @@
+package com.hn.tgu.hospital.config;
+
+import com.hn.tgu.hospital.entity.Doctor;
+import com.hn.tgu.hospital.repository.DoctorRepository;
+import com.hn.tgu.hospital.search.DoctorIndex;
+import com.hn.tgu.hospital.search.DoctorSearchRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.CommandLineRunner;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Conditional;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.data.elasticsearch.core.ElasticsearchOperations;
+import org.springframework.data.elasticsearch.core.mapping.IndexCoordinates;
+import org.springframework.data.elasticsearch.core.query.IndexQuery;
+import org.springframework.data.elasticsearch.core.query.IndexQueryBuilder;
+
+import java.util.List;
+import java.util.stream.Collectors;
+
+@Configuration
+@Conditional(ElasticsearchAvailableCondition.class)
+public class ElasticsearchConfig {
+
+    @Autowired
+    private DoctorRepository doctorRepository;
+
+    @Autowired
+    private DoctorSearchRepository doctorSearchRepository;
+
+    @Autowired
+    private ElasticsearchOperations elasticsearchOperations;
+
+    @Bean
+    public CommandLineRunner elasticsearchInitializer() {
+        return args -> {
+            try {
+                // Verificar si el índice existe, si no, crearlo
+                if (!elasticsearchOperations.indexOps(IndexCoordinates.of("doctores")).exists()) {
+                    System.out.println("Creando índice de Elasticsearch...");
+                    elasticsearchOperations.indexOps(DoctorIndex.class).create();
+                }
+
+                // Sincronizar datos iniciales si el índice está vacío
+                long count = doctorSearchRepository.count();
+                if (count == 0) {
+                    System.out.println("Sincronizando datos iniciales con Elasticsearch...");
+                    sincronizarDatosIniciales();
+                }
+
+                System.out.println("Elasticsearch inicializado correctamente. Documentos en índice: " + count);
+            } catch (Exception e) {
+                System.err.println("Error al inicializar Elasticsearch: " + e.getMessage());
+                // No fallar la aplicación si Elasticsearch no está disponible
+            }
+        };
+    }
+
+    private void sincronizarDatosIniciales() {
+        List<Doctor> doctores = doctorRepository.findAll();
+        List<DoctorIndex> indices = doctores.stream()
+                .map(this::convertirAIndex)
+                .collect(Collectors.toList());
+
+        if (!indices.isEmpty()) {
+            doctorSearchRepository.saveAll(indices);
+            System.out.println("Sincronizados " + indices.size() + " doctores con Elasticsearch");
+        }
+    }
+
+    private DoctorIndex convertirAIndex(Doctor doctor) {
+        DoctorIndex index = new DoctorIndex();
+        index.setId(doctor.getId());
+        index.setName(doctor.getName());
+        index.setSpecialty(doctor.getSpecialty());
+        index.setImg(doctor.getImg());
+        index.setExperienceYears(doctor.getExperienceYears());
+        index.setRating(doctor.getRating());
+        index.setHospital(doctor.getHospital());
+        index.setAvailable(doctor.isAvailable());
+        index.setDescription(doctor.getDescription());
+        index.setTags(doctor.getTags());
+        index.setDiasLaborales(doctor.getDiasLaborales());
+        index.setHorarioEntrada(doctor.getHorarioEntrada());
+        index.setHorarioSalida(doctor.getHorarioSalida());
+        index.setDuracionCita(doctor.getDuracionCita());
+        index.setHorariosDisponibles(doctor.getHorariosDisponibles());
+        
+        // Generar texto de búsqueda
+        StringBuilder searchText = new StringBuilder();
+        searchText.append(doctor.getName()).append(" ");
+        searchText.append(doctor.getSpecialty()).append(" ");
+        searchText.append(doctor.getHospital()).append(" ");
+        if (doctor.getDescription() != null) {
+            searchText.append(doctor.getDescription()).append(" ");
+        }
+        if (doctor.getTags() != null) {
+            searchText.append(String.join(" ", doctor.getTags()));
+        }
+        index.setSearchText(searchText.toString());
+        
+        return index;
+    }
+}

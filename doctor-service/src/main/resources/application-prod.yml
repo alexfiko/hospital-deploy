@@ -1,16 +1,20 @@
+server:
+  port: 8081
+
 spring:
   application:
     name: doctor-service
   cloud:
     compatibility-verifier:
-      enabled: false # Opcional para evitar errores por versiones
+      enabled: false
   main:
-    allow-bean-definition-overriding: true # Si usás Feign más adelante
+    allow-bean-definition-overriding: true
   datasource:
     url: ${SPRING_DATASOURCE_URL:jdbc:h2:tcp://h2-database:9092/file:/opt/h2/hospitaldb}
     driver-class-name: org.h2.Driver
     username: ${SPRING_DATASOURCE_USERNAME:sa}
     password: ${SPRING_DATASOURCE_PASSWORD:password}
+    type: com.zaxxer.hikari.HikariDataSource
   jpa:
     database-platform: org.hibernate.dialect.H2Dialect
     hibernate:
@@ -21,26 +25,85 @@ spring:
         format-sql: true
         transaction:
           jta:
-            # Si no usás JTA, podés usar NoJtaPlatform
-            #platform: org.hibernate.service.jta.platform.internal.NoJtaPlatform
             platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
-
+  data:
+    elasticsearch:
+      uris: ${SPRING_DATA_ELASTICSEARCH_URIS:https://hospital-cluster-5303791460.us-east-1.bonsaisearch.net:443}
+      username: ${SPRING_DATA_ELASTICSEARCH_USERNAME:j78qu5rxgf}
+      password: ${SPRING_DATA_ELASTICSEARCH_PASSWORD:c3y0l8bm9z}
+      connection-timeout: ${SPRING_DATA_ELASTICSEARCH_CONNECTION_TIMEOUT:30s}
+      socket-timeout: ${SPRING_DATA_ELASTICSEARCH_SOCKET_TIMEOUT:30s}
+      ssl:
+        enabled: ${SPRING_DATA_ELASTICSEARCH_SSL_ENABLED:true}
+        verification-mode: ${SPRING_DATA_ELASTICSEARCH_SSL_VERIFICATION_MODE:none}
+      cluster-name: ${SPRING_DATA_ELASTICSEARCH_CLUSTER_NAME:elasticsearch}
+      index:
+        number-of-shards: ${SPRING_DATA_ELASTICSEARCH_INDEX_NUMBER_OF_SHARDS:1}
+        number-of-replicas: ${SPRING_DATA_ELASTICSEARCH_INDEX_NUMBER_OF_REPLICAS:0}
+      search:
+        default-timeout: ${SPRING_DATA_ELASTICSEARCH_SEARCH_DEFAULT_TIMEOUT:30s}
+        max-timeout: ${SPRING_DATA_ELASTICSEARCH_SEARCH_MAX_TIMEOUT:60s}
+      headers:
+        X-Elastic-Product: ${SPRING_DATA_ELASTICSEARCH_HEADERS_X_ELASTIC_PRODUCT:Elasticsearch}
   h2:
     console:
       enabled: true
       path: /h2-console
   flyway:
     enabled: false
-
   jackson:
     default-property-inclusion: non-null
     serialization:
       write-dates-as-timestamps: false
+
+eureka:
+  client:
+    serviceUrl:
+      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:8761/eureka/}
+    healthcheck:
+      enabled: true
+  instance:
+    preferIpAddress: true
+    hostname: doctor-service
+    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
+    lease-renewal-interval-in-seconds: 10
+    lease-expiration-duration-in-seconds: 30
+
+logging:
+  level:
+    com.hn.tgu.hospital: DEBUG
+    org.springframework.web: INFO
+    org.hibernate: INFO
+    com.netflix.eureka: DEBUG
+    com.netflix.discovery: DEBUG
+    org.springframework.data.elasticsearch: DEBUG
+    org.elasticsearch: DEBUG
+    co.elastic.clients: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    health:
+      show-details: always
+  health:
+    elasticsearch:
+      enabled: false
+
 springdoc:
   swagger-ui:
-    path: /swagger-ui.html|
+    path: /swagger-ui.html
     operationsSorter: method
     tagsSorter: alpha
     display-request-duration: true
   api-docs:
     path: /v3/api-docs
+
+# Configuración personalizada para Elasticsearch
+elasticsearch:
+  enabled: ${ELASTICSEARCH_ENABLED:true}
+  fallback-enabled: ${ELASTICSEARCH_FALLBACK_ENABLED:false}
+  retry-attempts: 3
+  retry-delay: 5000

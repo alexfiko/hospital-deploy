@@ -19,6 +19,12 @@ public class PacienteDTO {
   // Constructores
   public PacienteDTO() {}
   
+  // Constructor simplificado para nombre y email
+  public PacienteDTO(String nombre, String email) {
+    this.nombre = nombre;
+    this.email = email;
+  }
+  
   public PacienteDTO(String id, String nombre, String apellido, String email, String telefono, 
                      LocalDate fechaNacimiento, String genero, String direccion, 
                      LocalDateTime createdAt, LocalDateTime updatedAt) {

@@ -20,8 +20,23 @@ public class CitaDTO {
   private String doctorNombre;
   private String pacienteNombre;
   
+  // Campo para PacienteDTO
+  private PacienteDTO paciente;
+  
   // Constructores
   public CitaDTO() {}
+  
+  // Constructor simplificado para CitaService
+  public CitaDTO(String id, String doctorId, String especialidad, String fecha, String hora, 
+                 PacienteDTO paciente, String motivo) {
+    this.id = id;
+    this.doctorId = doctorId;
+    this.fecha = LocalDate.parse(fecha);
+    this.hora = hora;
+    this.paciente = paciente;
+    this.motivo = motivo;
+    this.estado = "PROGRAMADA";
+  }
   
   public CitaDTO(String id, String doctorId, String pacienteId, LocalDate fecha, String hora, 
                  String estado, String motivo, String notas, LocalDateTime createdAt, LocalDateTime updatedAt) {
@@ -132,5 +147,13 @@ public class CitaDTO {
   
   public void setPacienteNombre(String pacienteNombre) {
     this.pacienteNombre = pacienteNombre;
+  }
+  
+  public PacienteDTO getPaciente() {
+    return paciente;
+  }
+  
+  public void setPaciente(PacienteDTO paciente) {
+    this.paciente = paciente;
   }
 }

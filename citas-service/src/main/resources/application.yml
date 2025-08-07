@@ -1,5 +1,5 @@
 server:
-  port: 8082 # o el puerto que uses para citas-service
+  port: 8083 # o el puerto que uses para citas-service
 
 spring:
   application:
