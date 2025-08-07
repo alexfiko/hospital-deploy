@@ -14,8 +14,7 @@ RUN apt-get update && \
 # Copiar script de inicialización
 COPY init-db.sql init-db.sql
 
-# Crear un volumen para persistir los datos de la base de datos H2
-VOLUME /opt/h2
+
 
 # Exponemos el puerto H2 TCP
 EXPOSE 9092
