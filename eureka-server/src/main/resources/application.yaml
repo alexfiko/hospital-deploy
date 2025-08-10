@@ -35,6 +35,11 @@ management:
   info:
     env:
       enabled: true
+  metrics:
+    binders:
+      processor:
+        enabled: false  # 👈 Esto desactiva ProcessorMetrics
+
       
 info:
   app:
