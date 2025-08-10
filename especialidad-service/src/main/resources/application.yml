@@ -22,10 +22,13 @@ management:
   endpoint:
     health:
       show-details: always
-
   info:
     env:
       enabled: true
+  metrics:
+    binders:
+      processor:
+        enabled: false  # 👈 Esto desactiva ProcessorMetrics
 
 springdoc:
   swagger-ui:
