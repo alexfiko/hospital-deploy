@@ -1,41 +1,36 @@
-
+version: '3.8'
 
 services:
   # ========================================
   # BASE DE DATOS H2
   # ========================================
 
-  #h2-database:
- #   build: 
- #     context: ./h2-database-service
- #     dockerfile: Dockerfile
- #   container_name: h2-database
- #   ports:
- #     - "9092:9092"  # Puerto TCP para conexiones JDBC
- #     - "8082:8082"  # Puerto web para la consola H2
- #   environment:
- #     - H2_USER=sa
- #     - H2_PASSWORD=password
- #     - H2_PORT=9092
- #     - H2_WEB_PORT=8082
- #   volumes:
- #     - h2-data:/opt/h2
- #   networks:
- #     - hospital-network
- #   dns:
- #     - 1.1.1.1
- #     - 1.0.0.1
- #   restart: unless-stopped
- #   healthcheck:
- #     test: ["CMD", "curl", "-f", "http://h2-database:8082/console"]
- #     interval: 30s
- #     timeout: 10s
- #     retries: 3
-  # ========================================
-  # POSTGRESQL
-  # ========================================
-
-
+  h2-database:
+    build: 
+      context: ./h2-database-service
+      dockerfile: Dockerfile
+    container_name: h2-database
+    ports:
+      - "9092:9092"  # Puerto TCP para conexiones JDBC
+      - "8082:8082"  # Puerto web para la consola H2
+    environment:
+      - H2_USER=sa
+      - H2_PASSWORD=password
+      - H2_PORT=9092
+      - H2_WEB_PORT=8082
+    volumes:
+      - h2-data:/opt/h2
+    networks:
+      - hospital-network
+    dns:
+      - 8.8.8.8
+      - 8.8.4.4
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8082/console"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
 
   # ========================================
   # EUREKA SERVER
@@ -54,11 +49,11 @@ services:
     networks:
       - hospital-network
     dns:
-      - 1.1.1.1
-      - 1.0.0.1
+      - 8.8.8.8
+      - 8.8.4.4
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://eureka-server:8761/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8761/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -75,12 +70,12 @@ services:
       - "8081:8081"
     depends_on:
       - eureka-server
+      - h2-database
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://shinkansen.proxy.rlwy.net:48598/railway
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=yIWMnmMBiULXeDZIogRKIGXzpYxIHghT
-      - SPRING_DATASOURCE_DRIVER-CLASS-NAME=org.postgresql.Driver
+      - SPRING_DATASOURCE_URL=jdbc:h2:tcp://h2-database:9092/file:/opt/h2/hospitaldb
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       # Configuración de Elasticsearch Bonsai
       - SPRING_DATA_ELASTICSEARCH_URIS=https://j78qu5rxgf:c3y0l8bm9z@hospital-cluster-5303791460.us-east-1.bonsaisearch.net:443
@@ -101,11 +96,11 @@ services:
     networks:
       - hospital-network
     dns:
-      - 1.1.1.1
-      - 1.0.0.1
+      - 8.8.8.8
+      - 8.8.4.4
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://doctor-service:8081/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8081/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -120,21 +115,22 @@ services:
       - "8083:8083"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://shinkansen.proxy.rlwy.net:48598/railway
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=yIWMnmMBiULXeDZIogRKIGXzpYxIHghT
+      - SPRING_DATASOURCE_URL=jdbc:h2:tcp://h2-database:9092/file:/opt/h2/hospitaldb
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFERIPADDRESS=true
     networks:
       - hospital-network
     dns:
-      - 1.1.1.1
-      - 1.0.0.1
+      - 8.8.8.8
+      - 8.8.4.4
     restart: unless-stopped
     depends_on:
+      - h2-database
       - eureka-server
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://citas-service:8083/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8083/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -148,49 +144,22 @@ services:
       - "8084:8084"
     environment:
       - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://shinkansen.proxy.rlwy.net:48598/railway
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=yIWMnmMBiULXeDZIogRKIGXzpYxIHghT
+      - SPRING_DATASOURCE_URL=jdbc:h2:tcp://h2-database:9092/file:/opt/h2/hospitaldb
+      - SPRING_DATASOURCE_USERNAME=sa
+      - SPRING_DATASOURCE_PASSWORD=password
       - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
       - EUREKA_INSTANCE_PREFERIPADDRESS=true
     networks:
       - hospital-network
     dns:
-      - 1.1.1.1
-      - 1.0.0.1
+      - 8.8.8.8
+      - 8.8.4.4
     restart: unless-stopped
     depends_on:
+      - h2-database
       - eureka-server
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://especialidad-service:8084/actuator/health"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-
-  paciente-service:
-    build:
-      context: ./paciente-service
-      dockerfile: Dockerfile
-    container_name: paciente-service
-    ports:
-      - "8085:8085"
-    environment:
-      - SPRING_PROFILES_ACTIVE=prod
-      - SPRING_DATASOURCE_URL=jdbc:postgresql://shinkansen.proxy.rlwy.net:48598/railway
-      - SPRING_DATASOURCE_USERNAME=postgres
-      - SPRING_DATASOURCE_PASSWORD=yIWMnmMBiULXeDZIogRKIGXzpYxIHghT
-      - EUREKA_CLIENT_SERVICEURL_DEFAULTZONE=http://eureka-server:8761/eureka/
-      - EUREKA_INSTANCE_PREFERIPADDRESS=true
-    networks:
-      - hospital-network
-    dns:
-      - 1.1.1.1
-      - 1.0.0.1
-    restart: unless-stopped
-    depends_on:
-      - eureka-server
-    healthcheck:
-      test: ["CMD", "curl", "-f", "http://paciente-service:8085/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8084/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -214,59 +183,23 @@ services:
     networks:
       - hospital-network
     dns:
-      - 1.1.1.1
-      - 1.0.0.1
+      - 8.8.8.8
+      - 8.8.4.4
     restart: unless-stopped
     depends_on:
       - eureka-server
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://api-gateway:8080/actuator/health"]
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
       interval: 30s
       timeout: 10s
       retries: 3
 
-  # ========================================
-  # MONITORING (OPCIONAL)
-  # ========================================
-  # Prometheus para métricas
-  #prometheus:
-  #  image: prom/prometheus:latest
-  #  container_name: prometheus
-  #  ports:
-  #    - "9090:9090"
-  #  volumes:
-  #    - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
-  #  networks:
-  #    - hospital-network
-  #  dns:
-  #    - 8.8.8.8
-  #    - 8.8.4.4
-  #  restart: unless-stopped
-
-  # Grafana para visualización
-  #grafana:
-  #  image: grafana/grafana:latest
-  #  container_name: grafana
-  #  ports:
-  #    - "3000:3000"
-  #  environment:
-  #    - GF_SECURITY_ADMIN_PASSWORD=admin
-  #  volumes:
-  #    - grafana-data:/var/lib/grafana
-  #  networks:
-  #    - hospital-network
-  #  dns:
-  #    - 8.8.8.8
-  #    - 8.8.4.4
-  #  restart: unless-stopped
 
 # ========================================
 # VOLÚMENES
 # ========================================
 volumes:
   h2-data:
-    driver: local
-  pgdata:
     driver: local
   grafana-data:
     driver: local
