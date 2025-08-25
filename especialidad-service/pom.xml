@@ -5,7 +5,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>3.5.4</version>
+		<version>3.2.5</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 	<groupId>com.hn.tgu.hospital</groupId>
@@ -51,6 +51,13 @@
       <artifactId>h2</artifactId>
       <scope>runtime</scope>
     </dependency>
+  <!-- PostgreSQL -->
+  <dependency>
+    <groupId>org.postgresql</groupId>
+    <artifactId>postgresql</artifactId>
+    <version>42.7.3</version>
+    <scope>runtime</scope>
+  </dependency>
 
     <!-- Eureka Client -->
     <dependency>
@@ -80,8 +87,10 @@
     <dependency>
       <groupId>org.projectlombok</groupId>
       <artifactId>lombok</artifactId>
-      <optional>true</optional>
+        <version>1.18.30</version> <!-- Usa la versión más reciente -->
+  <scope>provided</scope>
     </dependency>
+
 
     <!-- Pruebas -->
     <dependency>
@@ -121,7 +130,6 @@
       <artifactId>spring-data-elasticsearch</artifactId>
       <version>5.1.5</version>
     </dependency>
-
 
   </dependencies>
 

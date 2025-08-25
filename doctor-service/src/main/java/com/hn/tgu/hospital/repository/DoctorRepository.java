@@ -51,4 +51,8 @@ public interface DoctorRepository extends JpaRepository<Doctor, String> {
                             @Param("hospital") String hospital,
                             @Param("available") Boolean available,
                             @Param("name") String name);
+  
+  // Obtener lista de hospitales únicos
+  @Query("SELECT DISTINCT d.hospital FROM Doctor d ORDER BY d.hospital")
+  List<String> findDistinctHospitales();
 } 

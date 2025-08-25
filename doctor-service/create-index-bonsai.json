@@ -1,0 +1,75 @@
+{
+  "settings": {
+    "number_of_shards": 1,
+    "number_of_replicas": 0,
+    "analysis": {
+      "analyzer": {
+        "spanish_analyzer": {
+          "type": "custom",
+          "tokenizer": "standard",
+          "filter": ["lowercase", "spanish_stop", "spanish_stemmer"]
+        }
+      }
+    }
+  },
+  "mappings": {
+    "properties": {
+      "id": {
+        "type": "keyword"
+      },
+      "name": {
+        "type": "text",
+        "analyzer": "spanish_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "specialty": {
+        "type": "text",
+        "analyzer": "spanish_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "hospital": {
+        "type": "text",
+        "analyzer": "spanish_analyzer",
+        "fields": {
+          "keyword": {
+            "type": "keyword",
+            "ignore_above": 256
+          }
+        }
+      },
+      "description": {
+        "type": "text",
+        "analyzer": "spanish_analyzer"
+      },
+      "experienceYears": {
+        "type": "integer"
+      },
+      "rating": {
+        "type": "float"
+      },
+      "available": {
+        "type": "boolean"
+      },
+      "tags": {
+        "type": "keyword"
+      },
+      "diasLaborales": {
+        "type": "keyword"
+      },
+      "searchText": {
+        "type": "text",
+        "analyzer": "spanish_analyzer"
+      }
+    }
+  }
+}

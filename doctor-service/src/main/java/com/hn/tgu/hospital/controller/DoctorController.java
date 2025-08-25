@@ -9,8 +9,10 @@ import com.hn.tgu.hospital.service.DoctorService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -18,7 +20,6 @@ import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/doctors")
-@CrossOrigin(origins = "*")
 public class DoctorController {
 
   @Autowired
@@ -35,6 +36,7 @@ public class DoctorController {
 
   // GET - Obtener todos los doctores
   @GetMapping("/list")
+  @Transactional(readOnly = true)
   public ResponseEntity<List<DoctorDTO>> getDoctores() {
     List<Doctor> doctores = doctorService.obtenerTodos();
     List<DoctorDTO> doctorDTOs = doctores.stream()
@@ -169,8 +171,51 @@ public class DoctorController {
       @RequestParam(required = false) Integer maxExperience,
       @RequestParam(required = false) List<String> tags) {
     
+    System.out.println("🔍 [DoctorController] /search/advanced llamado con:");
+    System.out.println("  - Query: " + query);
+    System.out.println("  - Specialty: " + specialty);
+    System.out.println("  - Hospital: " + hospital);
+    System.out.println("  - Available: " + available);
+    System.out.println("  - MinRating: " + minRating);
+    System.out.println("  - MaxRating: " + maxRating);
+    System.out.println("  - MinExperience: " + minExperience);
+    System.out.println("  - MaxExperience: " + maxExperience);
+    System.out.println("  - Tags: " + tags);
+    
+    // Si solo tenemos query (del frontend), usar el nuevo método
+    if (query != null && !query.trim().isEmpty() && 
+        specialty == null && hospital == null && available == null && 
+        minRating == null && maxRating == null && minExperience == null && 
+        maxExperience == null && (tags == null || tags.isEmpty())) {
+      
+      System.out.println("🔍 [DoctorController] Usando procesarQueryFrontend para query: " + query);
+      List<DoctorDTO> resultado = doctorSearchService.procesarQueryFrontend(query);
+      System.out.println("🔍 [DoctorController] Resultados devueltos: " + resultado.size());
+      return ResponseEntity.ok(resultado);
+    }
+    
+    // Si tenemos parámetros individuales, usar el método original
+    System.out.println("🔍 [DoctorController] Usando buscarConFacets con parámetros individuales");
+    System.out.println("🔍 [DoctorController] Parámetros recibidos:");
+    System.out.println("  - Query: " + query);
+    System.out.println("  - Specialty: " + specialty);
+    System.out.println("  - Hospital: " + hospital);
+    System.out.println("  - Available: " + available);
+    System.out.println("  - MinRating: " + minRating);
+    System.out.println("  - MaxRating: " + maxRating);
+    System.out.println("  - MinExperience: " + minExperience);
+    System.out.println("  - MaxExperience: " + maxExperience);
+    System.out.println("  - Tags: " + tags);
+    
     List<DoctorDTO> resultado = doctorSearchService.buscarConFacets(query, specialty, hospital, 
         minExperience, maxExperience, minRating, maxRating, available, tags);
+    
+    System.out.println("🔍 [DoctorController] Resultados devueltos: " + resultado.size());
+    System.out.println("🔍 [DoctorController] Primeros 3 resultados:");
+    resultado.stream().limit(3).forEach(doc -> 
+        System.out.println("  - " + doc.name + " (" + doc.hospital + ") - " + doc.specialty)
+    );
+    
     return ResponseEntity.ok(resultado);
   }
 
@@ -246,6 +291,18 @@ public class DoctorController {
     }
   }
 
+  // GET - Sincronizar datos con Elasticsearch (alternativa)
+  @GetMapping("/sync/elasticsearch")
+  public ResponseEntity<String> sincronizarConElasticsearchGet() {
+    try {
+      doctorSearchService.sincronizarDatos();
+      return ResponseEntity.ok("Datos sincronizados exitosamente con Elasticsearch");
+    } catch (Exception e) {
+      return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                         .body("Error al sincronizar datos: " + e.getMessage());
+    }
+  }
+
   // GET - Verificar estado de Elasticsearch
   @GetMapping("/search-index")
   public ResponseEntity<List<DoctorDTO>> verificarElasticsearch() {
@@ -271,4 +328,18 @@ public class DoctorController {
         .collect(Collectors.toList());
     return ResponseEntity.ok(doctores);
   }
+
+    @GetMapping("/hospitales")
+    @Transactional(readOnly = true)
+    public ResponseEntity<List<String>> getHospitales() {
+        try {
+            List<String> hospitales = doctorRepository.findDistinctHospitales();
+            return ResponseEntity.ok(hospitales);
+        } catch (Exception e) {
+            // Assuming logger is available, otherwise replace with System.err.println
+            // System.err.println("Error obteniendo hospitales: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Collections.emptyList());
+        }
+    }
 }

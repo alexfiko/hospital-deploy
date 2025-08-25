@@ -1,10 +1,9 @@
 package com.hn.tgu.hospital.controller;
 
 import com.hn.tgu.hospital.dto.CitaDTO;
-import com.hn.tgu.hospital.dto.DoctorDTO;
 import com.hn.tgu.hospital.service.CitaService;
-import com.hn.tgu.hospital.service.DoctorIntegrationService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -14,69 +13,69 @@ import java.util.List;
 @RequestMapping("/appointments")
 public class CitaController {
 
-    private final CitaService citaService;
-    private final DoctorIntegrationService doctorIntegrationService;
+    @Autowired
+    private CitaService citaService;
 
-    public CitaController(CitaService citaService, DoctorIntegrationService doctorIntegrationService) {
-        this.citaService = citaService;
-        this.doctorIntegrationService = doctorIntegrationService;
-    }
-
+    // CRUD principal
     @GetMapping("/list")
-    public List<CitaDTO> obtenerCitas(@RequestParam(required = false) String hospital) {
-        if ("tgu".equalsIgnoreCase(hospital)) {
-            return citaService.listarCitas();
-        }
-        return List.of(); // Pensado para escalar a otras sedes
+    public ResponseEntity<List<CitaDTO>> getCitas() {
+        return ResponseEntity.ok(citaService.listarCitas());
     }
 
-    @GetMapping("/doctors")
-    public ResponseEntity<List<DoctorDTO>> obtenerDoctores() {
-        List<DoctorDTO> doctores = doctorIntegrationService.getAllDoctors();
-        return ResponseEntity.ok(doctores);
+    @PostMapping("/create")
+    public ResponseEntity<CitaDTO> crearCita(@RequestBody CitaDTO citaDTO) {
+        CitaDTO citaCreada = citaService.crearCita(citaDTO);
+        return ResponseEntity.status(HttpStatus.CREATED).body(citaCreada);
     }
 
-    @GetMapping("/doctors/{doctorId}")
-    public ResponseEntity<DoctorDTO> obtenerDoctor(@PathVariable String doctorId) {
-        DoctorDTO doctor = doctorIntegrationService.getDoctorById(doctorId);
-        if (doctor != null) {
-            return ResponseEntity.ok(doctor);
-        }
-        return ResponseEntity.notFound().build();
+    @PutMapping("/{id}")
+    public ResponseEntity<CitaDTO> actualizarCita(@PathVariable String id, @RequestBody CitaDTO citaDTO) {
+        CitaDTO citaActualizada = citaService.actualizarCita(id, citaDTO);
+        return ResponseEntity.ok(citaActualizada);
     }
 
-    @GetMapping("/doctors/specialty/{specialty}")
-    public ResponseEntity<List<DoctorDTO>> obtenerDoctoresPorEspecialidad(@PathVariable String specialty) {
-        List<DoctorDTO> doctores = doctorIntegrationService.getDoctorsBySpecialty(specialty);
-        return ResponseEntity.ok(doctores);
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> eliminarCita(@PathVariable String id) {
+        citaService.eliminarCita(id);
+        return ResponseEntity.noContent().build();
     }
 
-    @GetMapping("/doctors/available")
-    public ResponseEntity<List<DoctorDTO>> obtenerDoctoresDisponibles() {
-        List<DoctorDTO> doctores = doctorIntegrationService.getAllDoctors();
-        List<DoctorDTO> disponibles = doctores.stream()
-                .filter(DoctorDTO::isAvailable)
-                .toList();
-        return ResponseEntity.ok(disponibles);
+    // --- ENDPOINTS DE BÚSQUEDA ÚTILES ---
+
+    // Buscar citas por doctorId
+    @GetMapping("/doctor/{doctorId}")
+    public ResponseEntity<List<CitaDTO>> getCitasPorDoctor(@PathVariable String doctorId) {
+        return ResponseEntity.ok(citaService.buscarPorDoctor(doctorId));
     }
 
-    @GetMapping("/health/doctor-service")
-    public ResponseEntity<String> verificarDoctorService() {
-        boolean disponible = doctorIntegrationService.isDoctorServiceAvailable();
-        if (disponible) {
-            return ResponseEntity.ok("Doctor Service está disponible");
-        } else {
-            return ResponseEntity.status(503).body("Doctor Service no está disponible");
-        }
+    // Buscar citas por pacienteId
+    @GetMapping("/paciente/{pacienteId}")
+    public ResponseEntity<List<CitaDTO>> getCitasPorPaciente(@PathVariable String pacienteId) {
+        return ResponseEntity.ok(citaService.buscarPorPaciente(pacienteId));
     }
 
-    @GetMapping("/validate-doctor/{doctorId}")
-    public ResponseEntity<String> validarDoctorParaCita(@PathVariable String doctorId) {
-        boolean valido = doctorIntegrationService.validateDoctorForAppointment(doctorId);
-        if (valido) {
-            return ResponseEntity.ok("Doctor válido para cita");
-        } else {
-            return ResponseEntity.badRequest().body("Doctor no válido o no disponible");
-        }
+    // Buscar citas por fecha
+    @GetMapping("/fecha/{fecha}")
+    public ResponseEntity<List<CitaDTO>> getCitasPorFecha(@PathVariable String fecha) {
+        return ResponseEntity.ok(citaService.buscarPorFecha(fecha));
+    }
+
+    // Buscar citas por estado
+    @GetMapping("/estado/{estado}")
+    public ResponseEntity<List<CitaDTO>> getCitasPorEstado(@PathVariable String estado) {
+        return ResponseEntity.ok(citaService.buscarPorEstado(estado));
+    }
+
+    // Endpoint de reporte flexible
+    @GetMapping("/report")
+    public ResponseEntity<List<CitaDTO>> getReporteCitas(
+            @RequestParam(required = false) String doctorId,
+            @RequestParam(required = false) String pacienteId,
+            @RequestParam(required = false) String fecha,
+            @RequestParam(required = false) String estado
+    ) {
+        return ResponseEntity.ok(
+            citaService.reporteCitas(doctorId, pacienteId, fecha, estado)
+        );
     }
 }

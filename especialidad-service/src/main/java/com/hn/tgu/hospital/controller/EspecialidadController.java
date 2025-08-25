@@ -13,8 +13,7 @@ import java.util.Optional;
 
 @RestController
 //@FeignClient(name = "especialidad-service", url = "${especialidad.service.url:http://localhost:8080}")
-@RequestMapping("/api/especialidades")
-@CrossOrigin(origins = "*")
+@RequestMapping("/specialties")
 public class EspecialidadController {
   
   @Autowired
@@ -23,7 +22,7 @@ public class EspecialidadController {
   /**
    * GET /api/especialidades - Obtener todas las especialidades
    */
-  @GetMapping
+  @GetMapping("/list")
   public ResponseEntity<List<EspecialidadDTO>> getAllEspecialidades() {
     List<EspecialidadDTO> especialidades = especialidadService.getAllEspecialidades();
     return ResponseEntity.ok(especialidades);
@@ -70,7 +69,7 @@ public class EspecialidadController {
   /**
    * POST /api/especialidades - Crear nueva especialidad
    */
-  @PostMapping
+  @PostMapping("/create")
   public ResponseEntity<EspecialidadDTO> createEspecialidad(@RequestBody EspecialidadDTO especialidadDTO) {
     try {
       EspecialidadDTO createdEspecialidad = especialidadService.createEspecialidad(especialidadDTO);

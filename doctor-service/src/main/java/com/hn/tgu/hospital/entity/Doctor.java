@@ -36,13 +36,13 @@ public class Doctor {
   @Column(columnDefinition = "TEXT")
   private String description;
   
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "doctor_tags", joinColumns = @JoinColumn(name = "doctor_id"))
   @Column(name = "tag")
   private List<String> tags;
   
   // Horario de trabajo
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "doctor_dias_laborales", joinColumns = @JoinColumn(name = "doctor_id"))
   @Column(name = "dia")
   private List<String> diasLaborales;
@@ -57,7 +57,7 @@ public class Doctor {
   private int duracionCita;
   
   // Horarios disponibles por día
-  @ElementCollection
+  @ElementCollection(fetch = FetchType.EAGER)
   @CollectionTable(name = "doctor_horarios_disponibles", 
                    joinColumns = @JoinColumn(name = "doctor_id"))
   @MapKeyColumn(name = "dia")

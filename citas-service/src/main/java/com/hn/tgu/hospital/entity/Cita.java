@@ -39,6 +39,9 @@ public class Cita {
   @Column(name = "updated_at")
   private LocalDateTime updatedAt;
   
+  private String doctorNombre;
+  private String pacienteNombre;
+  
   // Constructores
   public Cita() {
     this.createdAt = LocalDateTime.now();
@@ -136,6 +139,19 @@ public class Cita {
   
   public void setUpdatedAt(LocalDateTime updatedAt) {
     this.updatedAt = updatedAt;
+  }
+  
+  public String getDoctorNombre() {
+    return doctorNombre;
+  }
+  public void setDoctorNombre(String doctorNombre) {
+    this.doctorNombre = doctorNombre;
+  }
+  public String getPacienteNombre() {
+    return pacienteNombre;
+  }
+  public void setPacienteNombre(String pacienteNombre) {
+    this.pacienteNombre = pacienteNombre;
   }
   
   @PreUpdate

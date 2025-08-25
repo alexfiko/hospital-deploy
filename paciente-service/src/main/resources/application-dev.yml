@@ -1,0 +1,35 @@
+server:
+  port: 8082
+spring:
+  datasource:
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://shinkansen.proxy.rlwy.net:48598/railway}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:yIWMnmMBiULXeDZIogRKIGXzpYxIHghT}
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format-sql: true
+        transaction:
+          jta:
+            platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
+  # h2:
+  #   console:
+  #     enabled: false
+  #     path: /h2-console
+  flyway:
+    enabled: false
+  cloud:
+    compatibility-verifier:
+      enabled: false # Opcional para evitar errores por versiones
+  main:
+    allow-bean-definition-overriding: true # Si usás Feign más adelante
+
+  application:
+    name: paciente-service
+    description: Servicio para gestión de pacientes
+    version: 1.0.0

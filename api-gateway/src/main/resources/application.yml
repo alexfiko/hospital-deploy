@@ -1,66 +1,82 @@
 server:
-  port: 8080
+  port: ${PORT:8080}
 
 spring:
   application:
     name: api-gateway
-  main:
-    web-application-type: reactive
   cloud:
     gateway:
+      httpclient:
+        connect-timeout: 10000
+        response-timeout: 30s
+        pool:
+          max-connections: 200
+          max-idle-time: 15s
       routes:
         - id: citas-service
-          uri: lb://citas-service
+          uri: ${CITAS_SERVICE_URL:citas-service.railway.internal:8083}
           predicates:
             - Path=/digital/hospital/appointments/**
           filters:
             - RewritePath=/digital/hospital/appointments/(?<segment>.*), /appointments/${segment}
-
+            
         - id: doctor-service
-          uri: lb://doctor-service
+          uri: ${DOCTOR_SERVICE_URL:doctor-service.railway.internal:8081}
           predicates:
             - Path=/digital/hospital/doctors/**
           filters:
             - RewritePath=/digital/hospital/doctors/(?<segment>.*), /doctors/${segment}
 
         - id: especialidad-service
-          uri: lb://especialidad-service
+          uri: ${ESPECIALIDAD_SERVICE_URL:especialidad-service.railway.internal:8084}
           predicates:
             - Path=/digital/hospital/specialties/**
           filters:
             - RewritePath=/digital/hospital/specialties/(?<segment>.*), /specialties/${segment}
 
-    discovery:
-      enabled: true
-
-eureka:
-  client:
-    service-url:
-      defaultZone: http://localhost:8761/eureka/
-    registerWithEureka: true
-    fetchRegistry: true
-  instance:
-    hostname: localhost
-    prefer-ip-address: false
-    instance-id: ${spring.application.name}:${server.port}
+        - id: paciente-service
+          uri: ${PACIENTE_SERVICE_URL:paciente-service.railway.internal:8082}
+          predicates:
+            - Path=/digital/hospital/patients/**
+          filters:
+            - RewritePath=/digital/hospital/patients/(?<segment>.*), /patients/${segment}
+            
+      discovery:
+        enabled: true
+      globalcors:
+        cors-configurations:
+          '[/**]':
+            allowedOrigins: "*"
+            allowedHeaders: "*"
+            allowedMethods: "*"
+            allowCredentials: false
+            maxAge: 3600
 
 management:
   endpoints:
     web:
       exposure:
-        include: health,info,metrics,prometheus
+        include: health,info,gateway,metrics
   endpoint:
     health:
       show-details: always
-    prometheus:
-      enabled: true
-    metrics:
-      export:
-        prometheus:
-          enabled: true
-  info:
-    env:
-      enabled: true
+    gateway:
+      enabled: ${ROUTE_TABLES_ENABLED:true}
+  metrics:
+    enable:
+      system.cpu: false
+      process.cpu: false
+
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://spring-cloud-eureka:8761/eureka} 
+    registerWithEureka: true
+    fetchRegistry: true
+  instance:
+    hostname: ${HOSTNAME:${spring.application.name}}
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
 
 info:
   app:
@@ -72,5 +88,6 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     reactor.netty.http.client: DEBUG
+    reactor.netty.http.server: DEBUG
     org.springframework.cloud.netflix.eureka: DEBUG
- 
+    org.springframework.web: DEBUG

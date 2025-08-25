@@ -1,6 +1,5 @@
 server:
   port: 8081
-
 spring:
   application:
     name: doctor-service
@@ -10,29 +9,37 @@ spring:
   main:
     allow-bean-definition-overriding: true
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:tcp://h2-database:9092/file:/opt/h2/hospitaldb}
-    driver-class-name: org.h2.Driver
-    username: ${SPRING_DATASOURCE_USERNAME:sa}
-    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://shinkansen.proxy.rlwy.net:48598/railway}
+    driver-class-name: ${SPRING_DATASOURCE_DRIVER-CLASS-NAME:org.postgresql.Driver}
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:yIWMnmMBiULXeDZIogRKIGXzpYxIHghT}
     type: com.zaxxer.hikari.HikariDataSource
+
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
+    open-in-view: false
     properties:
       hibernate:
-        format-sql: true
+        format-sql: false
         transaction:
           jta:
             platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
+        logging:
+          level:
+            org.hibernate.SQL: ERROR
+            org.hibernate.type.descriptor.sql.BasicBinder: ERROR
+            org.hibernate.orm.connections.pooling: ERROR
+            org.hibernate.orm.deprecation: ERROR
   data:
     elasticsearch:
       uris: ${SPRING_DATA_ELASTICSEARCH_URIS:https://hospital-cluster-5303791460.us-east-1.bonsaisearch.net:443}
       username: ${SPRING_DATA_ELASTICSEARCH_USERNAME:j78qu5rxgf}
       password: ${SPRING_DATA_ELASTICSEARCH_PASSWORD:c3y0l8bm9z}
-      connection-timeout: ${SPRING_DATA_ELASTICSEARCH_CONNECTION_TIMEOUT:30s}
-      socket-timeout: ${SPRING_DATA_ELASTICSEARCH_SOCKET_TIMEOUT:30s}
+      connection-timeout: ${SPRING_DATA_ELASTICSEARCH_CONNECTION_TIMEOUT:10s}
+      socket-timeout: ${SPRING_DATA_ELASTICSEARCH_SOCKET_TIMEOUT:10s}
       ssl:
         enabled: ${SPRING_DATA_ELASTICSEARCH_SSL_ENABLED:true}
         verification-mode: ${SPRING_DATA_ELASTICSEARCH_SSL_VERIFICATION_MODE:none}
@@ -41,44 +48,29 @@ spring:
         number-of-shards: ${SPRING_DATA_ELASTICSEARCH_INDEX_NUMBER_OF_SHARDS:1}
         number-of-replicas: ${SPRING_DATA_ELASTICSEARCH_INDEX_NUMBER_OF_REPLICAS:0}
       search:
-        default-timeout: ${SPRING_DATA_ELASTICSEARCH_SEARCH_DEFAULT_TIMEOUT:30s}
-        max-timeout: ${SPRING_DATA_ELASTICSEARCH_SEARCH_MAX_TIMEOUT:60s}
+        default-timeout: ${SPRING_DATA_ELASTICSEARCH_SEARCH_DEFAULT_TIMEOUT:10s}
+        max-timeout: ${SPRING_DATA_ELASTICSEARCH_SEARCH_MAX_TIMEOUT:20s}
       headers:
         X-Elastic-Product: ${SPRING_DATA_ELASTICSEARCH_HEADERS_X_ELASTIC_PRODUCT:Elasticsearch}
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
-  flyway:
-    enabled: false
-  jackson:
-    default-property-inclusion: non-null
-    serialization:
-      write-dates-as-timestamps: false
+      client:
+        build-flavor: ${SPRING_DATA_ELASTICSEARCH_CLIENT_BUILD_FLAVOR:default}
 
-eureka:
-  client:
-    serviceUrl:
-      defaultZone: ${EUREKA_CLIENT_SERVICEURL_DEFAULTZONE:http://eureka-server:8761/eureka/}
-    healthcheck:
-      enabled: true
-  instance:
-    preferIpAddress: true
-    hostname: doctor-service
-    instance-id: ${spring.application.name}:${spring.application.instance_id:${random.value}}
-    lease-renewal-interval-in-seconds: 10
-    lease-expiration-duration-in-seconds: 30
 
 logging:
   level:
-    com.hn.tgu.hospital: DEBUG
-    org.springframework.web: INFO
-    org.hibernate: INFO
-    com.netflix.eureka: DEBUG
-    com.netflix.discovery: DEBUG
+    com.hn.tgu.hospital: INFO
+    org.springframework.web: WARN
+    org.hibernate: ERROR
+    org.hibernate.orm.connections.pooling: ERROR
+    org.hibernate.orm.deprecation: ERROR
+    com.netflix.eureka: WARN
+    com.netflix.discovery: WARN
     org.springframework.data.elasticsearch: DEBUG
     org.elasticsearch: DEBUG
     co.elastic.clients: DEBUG
+    org.springframework.boot.autoconfigure: WARN
+    org.springframework.context: WARN
+    org.springframework.boot: WARN
 
 management:
   endpoints:
@@ -91,15 +83,22 @@ management:
   health:
     elasticsearch:
       enabled: false
+    defaults:
+      enabled: true
+    db:
+      enabled: true
+  health.livenessstate.enabled: true
+  health.readinessstate.enabled: true
 
 springdoc:
   swagger-ui:
-    path: /swagger-ui.html
+    path: /doctors/swagger-ui.html
     operationsSorter: method
     tagsSorter: alpha
     display-request-duration: true
   api-docs:
     path: /v3/api-docs
+
 
 # Configuración personalizada para Elasticsearch
 elasticsearch:
@@ -107,3 +106,5 @@ elasticsearch:
   fallback-enabled: ${ELASTICSEARCH_FALLBACK_ENABLED:false}
   retry-attempts: 3
   retry-delay: 5000
+  startup-timeout: 30s
+  connection-test-timeout: 10s

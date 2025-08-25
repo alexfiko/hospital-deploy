@@ -1,0 +1,50 @@
+server:
+  port: 8082
+
+spring:
+  profiles:
+    active: prod  # o "prod" en despliegue
+eureka:
+  client:
+    service-url:
+      defaultZone: ${EUREKA_URL:http://spring-cloud-eureka:8761/eureka} 
+    register-with-eureka: true
+    fetch-registry: true
+  instance:
+    prefer-ip-address: true
+    instance-id: ${spring.application.name}:${server.port}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+    metrics:
+      export:
+        prometheus:
+          enabled: true
+  info:
+    env:
+      enabled: true
+
+springdoc:
+  swagger-ui:
+    path: /patients/swagger-ui.html
+    operationsSorter: method
+    tagsSorter: alpha
+    display-request-duration: true
+  api-docs:
+    path: /v3/api-docs
+
+info:
+  app:
+    name: paciente Service
+    description: Servicio para gestión de pacientes
+    version: 1.0.0
+
+  

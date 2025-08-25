@@ -4,15 +4,8 @@
       "standard": {
         "type": "standard"
       },
-      "spanish_analyzer": {
-        "type": "custom",
-        "tokenizer": "standard",
-        "filter": ["lowercase", "spanish_stop", "spanish_stemmer"]
-      },
-      "autocomplete_analyzer": {
-        "type": "custom",
-        "tokenizer": "standard",
-        "filter": ["lowercase", "autocomplete_filter"]
+      "spanish": {
+        "type": "spanish"
       }
     },
     "filter": {
@@ -22,18 +15,13 @@
       },
       "spanish_stemmer": {
         "type": "stemmer",
-        "language": "light_spanish"
-      },
-      "autocomplete_filter": {
-        "type": "edge_ngram",
-        "min_gram": 1,
-        "max_gram": 20
+        "language": "spanish"
       }
     }
   },
   "index": {
     "number_of_shards": 1,
     "number_of_replicas": 0,
-    "max_ngram_diff": 50
+    "refresh_interval": "1s"
   }
 }

@@ -11,7 +11,8 @@ import org.elasticsearch.client.RestHighLevelClient;
 import org.elasticsearch.index.query.QueryBuilders;
 import org.elasticsearch.search.SearchHit;
 import org.elasticsearch.search.builder.SearchSourceBuilder;
-import org.elasticsearch.xcontent.XContentType;
+import org.elasticsearch.common.xcontent.XContentType;
+import org.elasticsearch.search.sort.SortOrder;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
@@ -178,7 +179,14 @@ public class DoctorSearchRepository {
         try {
             SearchRequest request = new SearchRequest(INDEX_NAME);
             SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
-            sourceBuilder.query(QueryBuilders.matchQuery("tags", String.join(" ", tags)));
+            
+            // Usar termsQuery para buscar en arrays de tags
+            sourceBuilder.query(QueryBuilders.termsQuery("tags", tags));
+            
+            // Configurar ordenamiento por rating
+            sourceBuilder.sort("rating", SortOrder.DESC);
+            sourceBuilder.size(100);
+            
             request.source(sourceBuilder);
             
             SearchResponse response = elasticsearchClient.search(request, RequestOptions.DEFAULT);
@@ -187,9 +195,163 @@ public class DoctorSearchRepository {
             for (SearchHit hit : response.getHits().getHits()) {
                 doctors.add(DoctorIndex.fromJson(hit.getSourceAsString()));
             }
+            
             return doctors;
         } catch (IOException e) {
             throw new RuntimeException("Error buscando doctores por tags", e);
+        }
+    }
+
+    /**
+     * Búsqueda avanzada con múltiples filtros usando Elasticsearch 7.10
+     * Implementa mejores prácticas según la documentación oficial
+     */
+    public List<DoctorIndex> searchAdvanced(String query, String specialty, String hospital, 
+                                           Integer minExperience, Integer maxExperience, 
+                                           Double minRating, Double maxRating, 
+                                           Boolean available, List<String> tags) {
+        try {
+            SearchRequest request = new SearchRequest(INDEX_NAME);
+            SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+            
+            // Construir query compuesta usando bool query
+            var boolQuery = QueryBuilders.boolQuery();
+            
+            // Query de texto libre con dis_max para mejor relevancia
+            if (query != null && !query.trim().isEmpty()) {
+                var disMaxQuery = QueryBuilders.disMaxQuery()
+                    .add(QueryBuilders.matchQuery("name", query).boost(3.0f))           // Nombre es más importante
+                    .add(QueryBuilders.matchQuery("specialty", query).boost(2.5f))      // Especialidad muy importante
+                    .add(QueryBuilders.matchQuery("description", query).boost(1.5f))    // Descripción importante
+                    .add(QueryBuilders.matchQuery("searchText", query).boost(1.0f))     // Texto de búsqueda normal
+                    .tieBreaker(0.3f);                                                  // Factor de desempate
+                
+                boolQuery.must(disMaxQuery);
+            }
+            
+            // Filtros específicos usando filter context (no afectan score)
+            if (specialty != null && !specialty.trim().isEmpty()) {
+                boolQuery.filter(QueryBuilders.termQuery("specialty", specialty));
+            }
+            
+            if (hospital != null && !hospital.trim().isEmpty()) {
+                boolQuery.filter(QueryBuilders.termQuery("hospital", hospital));
+            }
+            
+            // Filtro de disponibilidad
+            if (available != null) {
+                if (available) {
+                    boolQuery.filter(QueryBuilders.termQuery("available", true));
+                } else {
+                    // Para disponibilidad false, usar must_not para ser más específico
+                    boolQuery.mustNot(QueryBuilders.termQuery("available", false));
+                }
+            }
+            
+            // Filtros de rango numérico
+            if (minExperience != null || maxExperience != null) {
+                var rangeQuery = QueryBuilders.rangeQuery("experienceYears");
+                if (minExperience != null) rangeQuery.gte(minExperience);
+                if (maxExperience != null) rangeQuery.lte(maxExperience);
+                boolQuery.filter(rangeQuery);
+            }
+            
+            if (minRating != null || maxRating != null) {
+                var rangeQuery = QueryBuilders.rangeQuery("rating");
+                if (minRating != null) rangeQuery.gte(minRating);
+                if (maxRating != null) rangeQuery.lte(maxRating);
+                boolQuery.filter(rangeQuery);
+            }
+            
+            // Filtros de tags usando terms query
+            if (tags != null && !tags.isEmpty()) {
+                boolQuery.filter(QueryBuilders.termsQuery("tags", tags));
+            }
+            
+            // Configurar la query principal
+            sourceBuilder.query(boolQuery);
+            
+            // Configurar paginación y límites
+            sourceBuilder.from(0).size(100); // Máximo 100 resultados
+            
+            // Configurar ordenamiento: primero por relevancia, luego por rating
+            sourceBuilder.sort("_score", SortOrder.DESC);  // Ordenar por score de relevancia
+            sourceBuilder.sort("rating", SortOrder.DESC);  // Luego por rating (descendente)
+            
+            request.source(sourceBuilder);
+            
+            System.out.println("🔍 [Elasticsearch 7.10] Query construida: " + boolQuery.toString());
+            System.out.println("🔍 [Elasticsearch 7.10] Ordenamiento: Score DESC, Rating DESC");
+            
+            SearchResponse response = elasticsearchClient.search(request, RequestOptions.DEFAULT);
+            
+            List<DoctorIndex> doctors = new ArrayList<>();
+            for (SearchHit hit : response.getHits().getHits()) {
+                doctors.add(DoctorIndex.fromJson(hit.getSourceAsString()));
+            }
+            
+            System.out.println("🔍 [Elasticsearch 7.10] Resultados encontrados: " + doctors.size() + " de " + response.getHits().getTotalHits().value);
+            
+            return doctors;
+            
+        } catch (IOException e) {
+            System.err.println("❌ Error en búsqueda avanzada de Elasticsearch: " + e.getMessage());
+            throw new RuntimeException("Error en búsqueda avanzada de Elasticsearch", e);
+        }
+    }
+
+    /**
+     * Búsqueda con boosting personalizado para mejor relevancia
+     * Implementa func_score query según documentación oficial
+     */
+    public List<DoctorIndex> searchWithBoosting(String query, String specialty, String hospital) {
+        try {
+            SearchRequest request = new SearchRequest(INDEX_NAME);
+            SearchSourceBuilder sourceBuilder = new SearchSourceBuilder();
+            
+            // Query principal con boosting
+            var boolQuery = QueryBuilders.boolQuery();
+            
+            if (query != null && !query.trim().isEmpty()) {
+                // Multi-match con boosting por campo
+                var multiMatch = QueryBuilders.multiMatchQuery(query)
+                    .field("name", 3.0f)        // Nombre es 3x más importante
+                    .field("specialty", 2.5f)   // Especialidad es 2.5x más importante
+                    .field("description", 1.5f) // Descripción es 1.5x más importante
+                    .tieBreaker(0.3f);
+                
+                boolQuery.must(multiMatch);
+            }
+            
+            // Filtros
+            if (specialty != null && !specialty.trim().isEmpty()) {
+                boolQuery.filter(QueryBuilders.matchQuery("specialty", specialty));
+            }
+            
+            if (hospital != null && !hospital.trim().isEmpty()) {
+                boolQuery.filter(QueryBuilders.matchQuery("hospital", hospital));
+            }
+            
+            sourceBuilder.query(boolQuery);
+            sourceBuilder.sort("_score", SortOrder.DESC);
+            sourceBuilder.size(50); // Menos resultados para mejor relevancia
+            
+            request.source(sourceBuilder);
+            
+            System.out.println("🔍 [Elasticsearch 7.10] Búsqueda con boosting: " + boolQuery.toString());
+            
+            SearchResponse response = elasticsearchClient.search(request, RequestOptions.DEFAULT);
+            
+            List<DoctorIndex> doctors = new ArrayList<>();
+            for (SearchHit hit : response.getHits().getHits()) {
+                doctors.add(DoctorIndex.fromJson(hit.getSourceAsString()));
+            }
+            
+            return doctors;
+            
+        } catch (IOException e) {
+            System.err.println("❌ Error en búsqueda con boosting: " + e.getMessage());
+            throw new RuntimeException("Error en búsqueda con boosting", e);
         }
     }
 }

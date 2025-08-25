@@ -10,13 +10,13 @@ spring:
   main:
     allow-bean-definition-overriding: true # Si usás Feign más adelante
   datasource:
-    url: ${SPRING_DATASOURCE_URL:jdbc:h2:tcp://h2-database:9092/file:/opt/h2/hospitaldb}
-    driver-class-name: org.h2.Driver
-    username: ${SPRING_DATASOURCE_USERNAME:sa}
-    password: ${SPRING_DATASOURCE_PASSWORD:password}
+    url: ${SPRING_DATASOURCE_URL:jdbc:postgresql://shinkansen.proxy.rlwy.net:48598/railway}
+    driver-class-name: org.postgresql.Driver
+    username: ${SPRING_DATASOURCE_USERNAME:postgres}
+    password: ${SPRING_DATASOURCE_PASSWORD:yIWMnmMBiULXeDZIogRKIGXzpYxIHghT}
     type: com.zaxxer.hikari.HikariDataSource
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
       ddl-auto: update
     show-sql: true
@@ -25,13 +25,11 @@ spring:
         format-sql: true
         transaction:
           jta:
-            # Si no usás JTA, podés usar NoJtaPlatform
-            #platform: org.hibernate.service.jta.platform.internal.NoJtaPlatform
             platform: org.hibernate.engine.transaction.jta.platform.internal.NoJtaPlatform
-  h2:
-    console:
-      enabled: true
-      path: /h2-console
+  # h2:
+  #   console:
+  #     enabled: false
+  #     path: /h2-console
   flyway:
     enabled: false
 
@@ -62,7 +60,7 @@ management:
 # Configuración de Swagger
 springdoc:
   swagger-ui:
-    path: /swagger-ui.html
+    path: /appointments/swagger-ui.html
     operationsSorter: method
     tagsSorter: alpha
     display-request-duration: true
